@@ -8,6 +8,7 @@ export function ConfirmDialog({
 	onConfirm,
 	open: controlledOpen,
 	onOpenChange,
+	returnFocus,
 }: {
 	trigger: ReactNode;
 	title: string;
@@ -15,6 +16,7 @@ export function ConfirmDialog({
 	onConfirm: () => void | Promise<void>;
 	open?: boolean;
 	onOpenChange?: (open: boolean) => void;
+	returnFocus?: () => HTMLElement | null;
 }) {
 	const [internalOpen, setInternalOpen] = useState(false);
 	const open = controlledOpen ?? internalOpen;
@@ -46,7 +48,18 @@ export function ConfirmDialog({
 			<Dialog.Trigger asChild>{trigger}</Dialog.Trigger>
 			<Dialog.Portal>
 				<Dialog.Overlay className="dialog-overlay" />
-				<Dialog.Content className="dialog-content" aria-busy={busy}>
+				<Dialog.Content
+					className="dialog-content"
+					aria-busy={busy}
+					onCloseAutoFocus={
+						returnFocus
+							? (event) => {
+									event.preventDefault();
+									returnFocus()?.focus();
+								}
+							: undefined
+					}
+				>
 					<Dialog.Title>{title}</Dialog.Title>
 					<Dialog.Description>{description}</Dialog.Description>
 					{error && <p role="alert">{error}</p>}

@@ -1,6 +1,6 @@
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DeadlineActions } from "#/components/deadlines/deadline-actions";
 import { DeadlineForm } from "#/components/deadlines/deadline-form";
 import { TypeIcon } from "#/components/deadlines/type-icon";
@@ -30,6 +30,7 @@ export const Route = createFileRoute("/_app/deadlines/$deadlineId")({
 function DeadlineDetail() {
 	const [editing, setEditing] = useState(false);
 	const [editScope, setEditScope] = useState<SeriesScope | null>(null);
+	const editButton = useRef<HTMLButtonElement>(null);
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
 	const client = useQueryClient();
@@ -38,6 +39,10 @@ function DeadlineDetail() {
 		data: { deadline, sessions },
 	} = useSuspenseQuery(deadlineQueryOptions(deadlineId));
 	const showEdit = deadline.status === "active" && (editing || search.edit);
+	useEffect(() => {
+		if (showEdit && editScope === "this" && !search.focusDue)
+			document.getElementById("deadline-title")?.focus();
+	}, [showEdit, editScope, search.focusDue]);
 	async function closeEdit() {
 		setEditing(false);
 		setEditScope(null);
@@ -62,12 +67,15 @@ function DeadlineDetail() {
 			)}
 			{deadline.notes && <p className="deadline-notes">{deadline.notes}</p>}
 			{deadline.status === "active" && !showEdit && (
-				<Button onClick={() => setEditing(true)}>Edit</Button>
+				<Button ref={editButton} onClick={() => setEditing(true)}>
+					Edit
+				</Button>
 			)}
 			{!showEdit && <DeadlineActions deadline={deadline} detail />}
 			{showEdit && deadline.seriesId && !editScope && (
 				<ScopeDialog
 					open
+					returnFocus={() => editButton.current}
 					action="edit"
 					onOpenChange={(open) => {
 						if (!open) void closeEdit();

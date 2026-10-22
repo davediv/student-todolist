@@ -406,3 +406,120 @@ it("loads fresh series settings before opening and keeps the draft baseline stab
 		previewVersion,
 	});
 });
+
+async function tabTo(
+	user: ReturnType<typeof userEvent.setup>,
+	target: HTMLElement,
+) {
+	for (let count = 0; count < 30 && document.activeElement !== target; count++)
+		await user.tab();
+	expect(target).toHaveFocus();
+}
+
+it.each([
+	"Escape",
+	"Cancel",
+])("returns keyboard focus to the remounted Edit button after scope %s", async (dismiss) => {
+	mockApi();
+	await renderRoute("/deadlines/occ2");
+	const user = userEvent.setup();
+	await tabTo(user, await screen.findByRole("button", { name: "Edit" }));
+	await user.keyboard("{Enter}");
+	await waitFor(() =>
+		expect(
+			screen.getByRole("button", { name: "This occurrence" }),
+		).toHaveFocus(),
+	);
+	if (dismiss === "Escape") await user.keyboard("{Escape}");
+	else {
+		await user.tab();
+		await user.tab();
+		expect(screen.getByRole("button", { name: "Cancel" })).toHaveFocus();
+		await user.keyboard("{Enter}");
+	}
+	await waitFor(() =>
+		expect(screen.getByRole("button", { name: "Edit" })).toHaveFocus(),
+	);
+	await user.tab();
+	expect(screen.getByRole("button", { name: "Mark done" })).toHaveFocus();
+});
+
+it.each([
+	"Escape",
+	"Cancel",
+])("returns keyboard focus to Delete after dismissing its scope prompt with %s", async (dismiss) => {
+	mockApi();
+	await renderRoute("/deadlines/occ2");
+	const user = userEvent.setup();
+	const origin = await screen.findByRole("button", { name: "Delete" });
+	await tabTo(user, origin);
+	await user.keyboard("{Enter}");
+	await waitFor(() =>
+		expect(
+			screen.getByRole("button", { name: "This occurrence" }),
+		).toHaveFocus(),
+	);
+	if (dismiss === "Escape") await user.keyboard("{Escape}");
+	else {
+		await user.tab();
+		await user.tab();
+		await user.keyboard("{Enter}");
+	}
+	await waitFor(() => expect(origin).toHaveFocus());
+	expect(screen.queryByRole("dialog")).toBeNull();
+});
+
+it.each([
+	"this",
+	"following",
+])("moves keyboard focus into the %s edit form after choosing scope", async (scope) => {
+	mockApi();
+	await renderRoute("/deadlines/occ2");
+	const user = userEvent.setup();
+	await tabTo(user, await screen.findByRole("button", { name: "Edit" }));
+	await user.keyboard("{Enter}");
+	await waitFor(() =>
+		expect(
+			screen.getByRole("button", { name: "This occurrence" }),
+		).toHaveFocus(),
+	);
+	if (scope === "following") await user.tab();
+	await user.keyboard("{Enter}");
+	await waitFor(() => expect(screen.getByLabelText("Title")).toHaveFocus());
+	await user.tab();
+	expect(screen.getByLabelText("Type")).toHaveFocus();
+});
+
+it.each([
+	"Escape",
+	"Cancel",
+])("focuses the delete confirmation then restores Delete after %s", async (dismiss) => {
+	mockApi();
+	await renderRoute("/deadlines/occ2");
+	const user = userEvent.setup();
+	const origin = await screen.findByRole("button", { name: "Delete" });
+	await tabTo(user, origin);
+	await user.keyboard("{Enter}");
+	await waitFor(() =>
+		expect(
+			screen.getByRole("button", { name: "This occurrence" }),
+		).toHaveFocus(),
+	);
+	await user.tab();
+	await user.keyboard("{Enter}");
+	const dialog = await screen.findByRole("dialog", {
+		name: "Delete this and following occurrences?",
+	});
+	await waitFor(() =>
+		expect(
+			within(dialog).getByRole("button", { name: "Cancel" }),
+		).toHaveFocus(),
+	);
+	if (dismiss === "Escape") await user.keyboard("{Escape}");
+	else {
+		await user.tab();
+		await user.tab({ shift: true });
+		await user.keyboard("{Enter}");
+	}
+	await waitFor(() => expect(origin).toHaveFocus());
+});

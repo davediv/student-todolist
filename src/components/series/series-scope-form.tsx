@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FormField } from "#/components/shared/form-field";
 import { SkeletonRows } from "#/components/shared/skeleton";
 import { Button } from "#/components/ui/button";
@@ -89,6 +89,10 @@ function ScopeFields({
 }: Props & { initial: ScopeValues }) {
 	const [values, setValues] = useState(initial);
 	const [baseline] = useState(initial);
+	const titleInput = useRef<HTMLInputElement>(null);
+	useEffect(() => {
+		titleInput.current?.focus();
+	}, []);
 	const [fields, setFields] = useState<Record<string, string[] | undefined>>(
 		{},
 	);
@@ -288,6 +292,7 @@ function ScopeFields({
 				>
 					{(props) => (
 						<Input
+							ref={titleInput}
 							{...props}
 							value={values.title}
 							disabled={busy}

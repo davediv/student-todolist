@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
 	ScopeDialog,
 	type SeriesScope,
@@ -31,6 +31,7 @@ export function DeadlineActions({
 	const [error, setError] = useState("");
 	const [scopeOpen, setScopeOpen] = useState(false);
 	const [deleteScope, setDeleteScope] = useState<SeriesScope | null>(null);
+	const deleteButton = useRef<HTMLButtonElement>(null);
 	async function markDone() {
 		setBusy(true);
 		setError("");
@@ -63,6 +64,7 @@ export function DeadlineActions({
 			{deadline.seriesId && (
 				<>
 					<Button
+						ref={deleteButton}
 						variant="ghost"
 						disabled={busy}
 						onClick={() => setScopeOpen(true)}
@@ -71,6 +73,7 @@ export function DeadlineActions({
 					</Button>
 					<ScopeDialog
 						open={scopeOpen}
+						returnFocus={() => deleteButton.current}
 						action="delete"
 						onOpenChange={setScopeOpen}
 						onSelect={(scope) => {
@@ -81,6 +84,7 @@ export function DeadlineActions({
 				</>
 			)}
 			<ConfirmDialog
+				returnFocus={deadline.seriesId ? () => deleteButton.current : undefined}
 				open={deadline.seriesId ? deleteScope !== null : undefined}
 				onOpenChange={(open) => {
 					if (!open) setDeleteScope(null);

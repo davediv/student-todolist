@@ -1,4 +1,5 @@
 import { Dialog } from "radix-ui";
+import { useEffect, useRef } from "react";
 import { Button } from "#/components/ui/button";
 
 export type SeriesScope = "this" | "following";
@@ -8,17 +9,33 @@ export function ScopeDialog({
 	onOpenChange,
 	onSelect,
 	action,
+	returnFocus,
 }: {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	onSelect: (scope: SeriesScope) => void;
 	action: "edit" | "delete";
+	returnFocus: () => HTMLElement | null;
 }) {
+	const selected = useRef(false);
+	useEffect(() => {
+		if (open) selected.current = false;
+	}, [open]);
+	function select(scope: SeriesScope) {
+		selected.current = true;
+		onSelect(scope);
+	}
 	return (
 		<Dialog.Root open={open} onOpenChange={onOpenChange}>
 			<Dialog.Portal>
 				<Dialog.Overlay className="dialog-overlay" />
-				<Dialog.Content className="dialog-content">
+				<Dialog.Content
+					className="dialog-content"
+					onCloseAutoFocus={(event) => {
+						event.preventDefault();
+						if (!selected.current) returnFocus()?.focus();
+					}}
+				>
 					<Dialog.Title>
 						{action === "edit"
 							? "Edit recurring deadline"
@@ -29,8 +46,8 @@ export function ScopeDialog({
 						unchanged when you choose this and following.
 					</Dialog.Description>
 					<div className="form-actions">
-						<Button onClick={() => onSelect("this")}>This occurrence</Button>
-						<Button variant="outline" onClick={() => onSelect("following")}>
+						<Button onClick={() => select("this")}>This occurrence</Button>
+						<Button variant="outline" onClick={() => select("following")}>
 							This and following
 						</Button>
 						<Dialog.Close asChild>

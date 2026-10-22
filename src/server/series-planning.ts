@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import type { getDb } from "#/db";
 import { deadlines, studySessions } from "#/db/schema";
-import { planDeadline } from "#/lib/planner";
+import { type PlannerSession, planDeadline } from "#/lib/planner";
 import { type planningState, weekdayLimits } from "./planning-state";
 
 type State = Awaited<ReturnType<typeof planningState>>;
@@ -16,9 +16,14 @@ export function planSeriesOccurrences(
 	today: string,
 ) {
 	const ids = new Set(occurrences.map((row) => row.id));
-	const reserved = state.sessions
+	const reserved: PlannerSession[] = state.sessions
 		.filter((row) => row.ticked || !ids.has(row.deadlineId))
-		.map((row) => ({ ...row, isDone: row.ticked }));
+		.map(({ deadlineId, date, minutes, ticked }) => ({
+			deadlineId,
+			date,
+			minutes,
+			isDone: ticked,
+		}));
 	return [...occurrences]
 		.sort((a, b) => a.dueDate.localeCompare(b.dueDate))
 		.map((row) => {
@@ -42,10 +47,6 @@ export function planSeriesOccurrences(
 			reserved.push(
 				...plan.sessions.map((session) => ({
 					...session,
-					id: "",
-					userId: "",
-					ticked: false,
-					tickedAt: null,
 					isDone: false,
 				})),
 			);
