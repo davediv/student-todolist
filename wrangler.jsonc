@@ -16,16 +16,22 @@
   "env": {
     "production": {
       "vars": {
-        "ENVIRONMENT": "production"
+        "ENVIRONMENT": "production",
+        "BETTER_AUTH_URL": "https://student-todolist.davdiv.workers.dev"
       },
       "d1_databases": [
         {
           "binding": "DB",
           "database_name": "student-todo",
-          "database_id": "00000000-0000-0000-0000-000000000000",
+          "database_id": "5ffab7da-dbb3-4d65-8ac2-a0ae18e704f1",
           "migrations_dir": "migrations"
         }
-      ]
+      ],
+      "name": "student-todolist",
+      "workers_dev": true,
+      "observability": {
+        "enabled": true
+      }
     }
   },
   "d1_databases": [

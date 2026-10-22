@@ -13,16 +13,17 @@
     "format": "biome format",
     "lint": "biome lint",
     "check": "biome check",
-    "deploy": "CLOUDFLARE_ENV=production npm run build && wrangler deploy --env production",
+    "deploy": "npm run deploy:prod",
     "db:generate": "drizzle-kit generate",
-    "cf-typegen": "wrangler types",
+    "cf-typegen": "wrangler types --config wrangler.jsonc",
     "typecheck": "tsc --noEmit",
     "format:check": "biome format",
     "test:unit": "vitest run --project unit",
     "test:web": "vitest run --project web",
     "test:api": "vitest run --project api",
     "test": "vitest run",
-    "db:migrate:local": "wrangler d1 migrations apply DB --local"
+    "db:migrate:local": "wrangler d1 migrations apply DB --local --config wrangler.jsonc",
+    "deploy:prod": "CLOUDFLARE_ENV=production npm run build && wrangler deploy"
   },
   "dependencies": {
     "@faker-js/faker": "^10.3.0",
