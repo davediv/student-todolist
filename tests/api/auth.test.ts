@@ -34,7 +34,11 @@ it("creates a user and a real HttpOnly session through the shared hooks", async 
 	expect(result.headers.get("location")).toBe("/");
 	expect(result.headers.get("set-cookie")).toMatch(/HttpOnly/i);
 	expect(result.headers.get("set-cookie")).toMatch(/SameSite=Lax/i);
-	const me = await apiApp.request("/api/me", { headers: { cookie } }, env);
+	const me = await apiApp.request(
+		"/api/me",
+		{ headers: { cookie, "X-Local-Date": "2026-10-22" } },
+		env,
+	);
 	expect(me.status).toBe(200);
 	expect(await me.json()).toMatchObject({
 		id: expect.any(String),
@@ -118,7 +122,7 @@ it("uses Secure cookies on HTTPS", async () => {
 		(
 			await apiApp.request(
 				"https://student.example/api/me",
-				{ headers: { cookie } },
+				{ headers: { cookie, "X-Local-Date": "2026-10-22" } },
 				{ ...env, BETTER_AUTH_URL: "https://student.example" },
 			)
 		).status,
@@ -133,7 +137,13 @@ it("signs out and invalidates the session", async () => {
 	);
 	expect(response.status).toBe(200);
 	expect(
-		(await apiApp.request("/api/me", { headers: { cookie } }, env)).status,
+		(
+			await apiApp.request(
+				"/api/me",
+				{ headers: { cookie, "X-Local-Date": "2026-10-22" } },
+				env,
+			)
+		).status,
 	).toBe(401);
 });
 it("starts Google OAuth with the configured callback URI", async () => {
@@ -168,7 +178,7 @@ it("renews browser cookies as well as database expiry for an aged session", asyn
 	await db.update(session).set({ expiresAt: new Date(Date.now() + 2 * day) });
 	const response = await apiApp.request(
 		"/api/me",
-		{ headers: { cookie } },
+		{ headers: { cookie, "X-Local-Date": "2026-10-22" } },
 		env,
 	);
 	expect(response.status).toBe(200);
@@ -184,7 +194,7 @@ it("expires the browser cookie when a session has expired", async () => {
 		.set({ expiresAt: new Date(Date.now() - 1000) });
 	const response = await apiApp.request(
 		"/api/me",
-		{ headers: { cookie } },
+		{ headers: { cookie, "X-Local-Date": "2026-10-22" } },
 		env,
 	);
 	expect(response.status).toBe(401);

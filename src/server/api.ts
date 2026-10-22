@@ -1,9 +1,12 @@
 import { Hono } from "hono";
+import { z } from "zod";
+import { getDb } from "#/db";
+import { activityDays } from "#/db/schema";
 import { type AuthUser, getAuth } from "#/lib/auth";
 export function createApiApp() {
 	const app = new Hono<{
 		Bindings: Env;
-		Variables: { user: AuthUser };
+		Variables: { user: AuthUser; today: string };
 	}>().basePath("/api");
 	app.notFound((c) =>
 		c.json({ error: { code: "not_found", message: "Route not found" } }, 404),
@@ -36,6 +39,22 @@ export function createApiApp() {
 				401,
 			);
 		c.set("user", session.user);
+		const date = z.iso.date().safeParse(c.req.header("X-Local-Date"));
+		if (!date.success)
+			return c.json(
+				{
+					error: {
+						code: "invalid_local_date",
+						message: "Send a valid X-Local-Date (YYYY-MM-DD)",
+					},
+				},
+				400,
+			);
+		c.set("today", date.data);
+		await getDb(c.env)
+			.insert(activityDays)
+			.values({ userId: session.user.id, date: date.data })
+			.onConflictDoNothing();
 		return next();
 	});
 	app.on(["GET", "POST"], "/auth/*", (c) => getAuth(c.env).handler(c.req.raw));

@@ -1,4 +1,10 @@
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+	index,
+	integer,
+	primaryKey,
+	sqliteTable,
+	text,
+} from "drizzle-orm/sqlite-core";
 
 const timestamps = () => ({
 	createdAt: integer("created_at", { mode: "timestamp_ms" })
@@ -68,4 +74,15 @@ export const verification = sqliteTable(
 		...timestamps(),
 	},
 	(t) => [index("verification_identifier_idx").on(t.identifier)],
+);
+
+export const activityDays = sqliteTable(
+	"activity_days",
+	{
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		date: text("date").notNull(),
+	},
+	(t) => [primaryKey({ columns: [t.userId, t.date] })],
 );
