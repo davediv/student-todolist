@@ -1,0 +1,33 @@
+{
+  "bundler": "vite",
+  "projectName": "student-todolist",
+  "mode": "file-router",
+  "typescript": true,
+  "packageManager": "npm",
+  "includeExamples": false,
+  "tailwind": true,
+  "projectPreset": "default",
+  "routerOnly": false,
+  "addOnOptions": {
+    "drizzle": {
+      "database": "sqlite"
+    }
+  },
+  "git": false,
+  "install": false,
+  "intent": true,
+  "version": 1,
+  "framework": "react",
+  "chosenAddOns": [
+    "biome",
+    "cloudflare",
+    "ai",
+    "drizzle",
+    "form",
+    "shadcn",
+    "table",
+    "better-auth",
+    "tanstack-query",
+    "store"
+  ]
+}
