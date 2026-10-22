@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { SkeletonRows } from "#/components/shared/skeleton";
 import { Button } from "#/components/ui/button";
+import { ApiError } from "#/lib/api-client";
 import { formatDate, formatHours } from "#/lib/format";
 import {
 	previewReplanAll,
@@ -20,6 +21,7 @@ export function ReplanAllPreview({
 		ReturnType<typeof previewReplanAll>
 	> | null>(null);
 	const [error, setError] = useState("");
+	const [notice, setNotice] = useState("");
 	const [saving, setSaving] = useState(false);
 	const [attempt, setAttempt] = useState(0);
 	// biome-ignore lint/correctness/useExhaustiveDependencies: attempt explicitly retries a failed preview request.
@@ -38,13 +40,18 @@ export function ReplanAllPreview({
 		};
 	}, [pending, attempt]);
 	async function save() {
+		if (!preview) return;
 		setSaving(true);
 		setError("");
 		try {
-			await saveReplanAll({ pending });
+			await saveReplanAll({ pending, previewVersion: preview.previewVersion });
 			await onSaved();
-		} catch {
-			setError("Couldn't save — try again");
+		} catch (error) {
+			if (error instanceof ApiError && error.code === "plan_changed") {
+				setPreview(null);
+				setNotice("Your plan changed. Review the updated preview.");
+				setAttempt((value) => value + 1);
+			} else setError("Couldn't save — try again");
 		} finally {
 			setSaving(false);
 		}
@@ -54,6 +61,7 @@ export function ReplanAllPreview({
 			<p className="eyebrow">Soonest due, first</p>
 			<h3>Re-plan all by due date</h3>
 			<p>Ticked sessions stay in place. Review the new plan before saving.</p>
+			{notice && <output>{notice}</output>}
 			{preview ? (
 				preview.plans.length ? (
 					preview.plans.map((plan) => (

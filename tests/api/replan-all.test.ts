@@ -24,6 +24,7 @@ const essay: DeadlineInput = {
 	estimateMinutes: 240,
 };
 type Plans = {
+	previewVersion: { revision: number; today: string };
 	plans: {
 		deadlineId: string;
 		title: string;
@@ -113,10 +114,15 @@ it("previews without writes and atomically prioritizes a pending 4h essay ahead 
 			return typeof value === "function" ? value.bind(target) : value;
 		},
 	});
-	const saved = await post("/api/replan/all", headers, input, {
-		...env,
-		DB: database,
-	});
+	const saved = await post(
+		"/api/replan/all",
+		headers,
+		{ ...input, previewVersion: preview.previewVersion },
+		{
+			...env,
+			DB: database,
+		},
+	);
 	expect(saved.status).toBe(200);
 	const result = (await saved.json()) as Plans;
 	expect(result.plans).toEqual(preview.plans);
@@ -131,6 +137,65 @@ it("previews without writes and atomically prioritizes a pending 4h essay ahead 
 			(await rows(deadlineId)).map(({ date, minutes }) => ({ date, minutes })),
 		).toEqual(plan.sessions);
 	}
+});
+
+it.each([
+	"limits",
+	"session",
+	"local date",
+])("rejects a preview made stale by %s before saving any pending work", async (change) => {
+	const { headers, id } = await setup();
+	const pending = { input: essay };
+	const preview = (await (
+		await post("/api/replan/all/preview", headers, { pending })
+	).json()) as Plans;
+	let saveHeaders = headers;
+	if (change === "limits") {
+		await apiApp.request(
+			"/api/limits",
+			{
+				method: "PUT",
+				headers: { ...headers, "Content-Type": "application/json" },
+				body: JSON.stringify({ ...defaultLimits, monday: 60 }),
+			},
+			env,
+		);
+	} else if (change === "session") {
+		const [session] = await rows(id);
+		await apiApp.request(
+			`/api/sessions/${session.id}`,
+			{
+				method: "PATCH",
+				headers: { ...headers, "Content-Type": "application/json" },
+				body: JSON.stringify({ ticked: true }),
+			},
+			env,
+		);
+	} else saveHeaders = { ...headers, "X-Local-Date": "2026-10-27" };
+	const before = await rows(id);
+	const itemsBefore = await getDb(env).select().from(deadlines);
+	const response = await post("/api/replan/all", saveHeaders, {
+		pending,
+		previewVersion: preview.previewVersion,
+	});
+	expect(response.status).toBe(409);
+	expect(await response.json()).toMatchObject({
+		error: { code: "plan_changed" },
+	});
+	expect(await rows(id)).toEqual(before);
+	expect(await getDb(env).select().from(deadlines)).toEqual(itemsBefore);
+	const fresh = (await (
+		await post("/api/replan/all/preview", saveHeaders, { pending })
+	).json()) as Plans;
+	expect(fresh.previewVersion).not.toEqual(preview.previewVersion);
+	expect(
+		(
+			await post("/api/replan/all", saveHeaders, {
+				pending,
+				previewVersion: fresh.previewVersion,
+			})
+		).status,
+	).toBe(200);
 });
 
 it("keeps ticked sessions, Done deadlines, past-due deadlines and other students untouched", async () => {

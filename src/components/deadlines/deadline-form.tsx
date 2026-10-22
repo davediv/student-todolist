@@ -3,9 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { ReplanAllPreview } from "#/components/plan/replan-all-preview";
 import { FormField } from "#/components/shared/form-field";
+import { SkeletonRows } from "#/components/shared/skeleton";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { Textarea } from "#/components/ui/textarea";
+import { ApiError } from "#/lib/api-client";
 import { previewDeadlineEdit, updateDeadline } from "#/lib/deadline-edit-query";
 import {
 	type DeadlineInput,
@@ -47,10 +49,13 @@ export function DeadlineForm({
 	const [preview, setPreview] = useState<
 		| (Awaited<ReturnType<typeof previewDeadline>> & {
 				keptSessions?: { id: string; date: string; minutes: number }[];
+				previewVersion?: { revision: number; today: string };
 		  })
 		| null
 	>(null);
 	const [error, setError] = useState("");
+	const [notice, setNotice] = useState("");
+	const [refreshing, setRefreshing] = useState(false);
 	const [saving, setSaving] = useState(false);
 	const [replanAll, setReplanAll] = useState(false);
 	function planningChanged(value: DeadlineInput) {
@@ -88,6 +93,7 @@ export function DeadlineForm({
 		},
 		onSubmit: async ({ value }) => {
 			setError("");
+			setNotice("");
 			try {
 				if (deadlineId && !planningChanged(value)) {
 					await updateDeadline(deadlineId, value);
@@ -112,15 +118,42 @@ export function DeadlineForm({
 		setSaving(true);
 		setError("");
 		try {
-			if (deadlineId) await updateDeadline(deadlineId, form.state.values);
+			if (deadlineId)
+				await updateDeadline(
+					deadlineId,
+					form.state.values,
+					preview?.previewVersion,
+				);
 			else await createDeadline(form.state.values);
 			await onSaved();
-		} catch {
-			setError("Couldn't save — try again");
+		} catch (error) {
+			if (
+				deadlineId &&
+				error instanceof ApiError &&
+				error.code === "plan_changed"
+			) {
+				setNotice("Your plan changed. Review the updated preview.");
+				setRefreshing(true);
+				setPreview(null);
+				try {
+					setPreview(await previewDeadlineEdit(deadlineId, form.state.values));
+				} catch {
+					setError("Couldn't preview — try again");
+				} finally {
+					setRefreshing(false);
+				}
+			} else setError("Couldn't save — try again");
 		} finally {
 			setSaving(false);
 		}
 	}
+	if (refreshing)
+		return (
+			<section className="deadline-form">
+				<output>{notice}</output>
+				<SkeletonRows />
+			</section>
+		);
 	if (replanAll)
 		return (
 			<ReplanAllPreview
@@ -134,6 +167,7 @@ export function DeadlineForm({
 			<section className="deadline-form">
 				<p className="eyebrow">A day-sized plan</p>
 				<h3>Plan preview</h3>
+				{notice && <output>{notice}</output>}
 				<p className="preview-title">{form.state.values.title}</p>
 				{preview.shortfallMinutes > 0 && (
 					<output className="shortfall">
@@ -208,6 +242,7 @@ export function DeadlineForm({
 						onClick={() => {
 							setPreview(null);
 							setError("");
+							setNotice("");
 						}}
 					>
 						Cancel

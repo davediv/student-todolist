@@ -3,6 +3,7 @@ import type { DeadlineInput } from "./deadlines";
 
 export type ReplanAllRequest = {
 	pending?: { id?: string; input: DeadlineInput };
+	previewVersion?: { revision: number; today: string };
 };
 
 export async function previewReplanAll(input: ReplanAllRequest = {}) {

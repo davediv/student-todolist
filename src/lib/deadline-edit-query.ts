@@ -10,10 +10,14 @@ export async function previewDeadlineEdit(id: string, input: DeadlineInput) {
 	throw new Error("Could not preview deadline changes");
 }
 
-export async function updateDeadline(id: string, input: DeadlineInput) {
+export async function updateDeadline(
+	id: string,
+	input: DeadlineInput,
+	previewVersion?: { revision: number; today: string },
+) {
 	const response = await apiClient.api.deadlines[":id"].$patch({
 		param: { id },
-		json: input,
+		json: { ...input, previewVersion },
 	});
 	if (response.status === 200) return response.json();
 	throw new Error("Could not save deadline changes");

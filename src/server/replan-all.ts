@@ -8,16 +8,27 @@ import { deadlines, studySessions } from "#/db/schema";
 import { deadlineSchema } from "#/lib/deadlines";
 import { replanAll } from "#/lib/planner";
 import type { ReplanAllRequest } from "#/lib/replan-all-query";
-import { commitPlan, planningState, weekdayLimits } from "./planning-state";
+import {
+	commitPlan,
+	PlanConflict,
+	planningState,
+	weekdayLimits,
+} from "./planning-state";
 import type { ApiEnv } from "./types";
 
 async function prepare(c: Context<ApiEnv>) {
 	const parsed = z
 		.object({
+			previewVersion: z
+				.object({
+					revision: z.number().int().nonnegative(),
+					today: z.iso.date(),
+				})
+				.optional(),
 			pending: z
 				.object({
 					id: z.string().min(1).optional(),
-					input: deadlineSchema(c.get("today")),
+					input: deadlineSchema("0000-00-00"),
 				})
 				.optional(),
 		})
@@ -59,6 +70,25 @@ async function prepare(c: Context<ApiEnv>) {
 			};
 	}
 	const state = await planningState(db, userId);
+	const previewVersion = parsed.data.previewVersion;
+	if (
+		previewVersion &&
+		(previewVersion.revision !== state.revision ||
+			previewVersion.today !== c.get("today"))
+	)
+		throw new PlanConflict();
+	if (
+		pending &&
+		!deadlineSchema(c.get("today")).safeParse(pending.input).success
+	)
+		return {
+			error: c.json(
+				{
+					error: { code: "validation", message: "Check your pending deadline" },
+				},
+				400,
+			),
+		};
 	if (pending?.id) {
 		const current = state.deadlines.find((item) => item.id === pending.id);
 		if (!current)
@@ -114,7 +144,14 @@ async function prepare(c: Context<ApiEnv>) {
 			shortfallMinutes: plan.shortfallMinutes,
 		};
 	});
-	return { db, userId, revision: state.revision, plans, pending };
+	return {
+		db,
+		userId,
+		revision: state.revision,
+		plans,
+		pending,
+		previewVersion: { revision: state.revision, today: c.get("today") },
+	};
 }
 
 export const replanAllRoutes = new Hono<ApiEnv>()
@@ -124,7 +161,10 @@ export const replanAllRoutes = new Hono<ApiEnv>()
 		async (c) => {
 			const result = await prepare(c);
 			if (result.error) return result.error;
-			return c.json({ plans: result.plans });
+			return c.json({
+				plans: result.plans,
+				previewVersion: result.previewVersion,
+			});
 		},
 	)
 	.post(
@@ -183,6 +223,10 @@ export const replanAllRoutes = new Hono<ApiEnv>()
 				);
 			}
 			if (queries.length) await commitPlan(db, userId, revision, queries);
-			return c.json({ plans, pendingDeadlineId });
+			return c.json({
+				plans,
+				pendingDeadlineId,
+				previewVersion: result.previewVersion,
+			});
 		},
 	);

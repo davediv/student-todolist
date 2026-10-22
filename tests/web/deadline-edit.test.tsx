@@ -208,3 +208,79 @@ it("opens Edit from detail, refreshes the saved deadline, and closes the form", 
 		).not.toBeInTheDocument(),
 	);
 });
+
+it("refreshes a stale edit preview after a conflict and saves only after the updated preview is reviewed", async () => {
+	const originalVersion = { revision: 2, today: "2026-10-26" };
+	const updatedVersion = { revision: 3, today: "2026-10-26" };
+	let previewCalls = 0;
+	let saveCalls = 0;
+	let refresh!: (response: Response) => void;
+	const fetcher = vi
+		.spyOn(globalThis, "fetch")
+		.mockImplementation(async (url) => {
+			if (String(url).endsWith("/preview")) {
+				previewCalls++;
+				return previewCalls === 1
+					? new Response(
+							JSON.stringify({ ...plan, previewVersion: originalVersion }),
+						)
+					: new Promise<Response>((resolve) => {
+							refresh = resolve;
+						});
+			}
+			saveCalls++;
+			return saveCalls === 1
+				? new Response(
+						JSON.stringify({
+							error: { code: "plan_changed", message: "Your plan changed" },
+						}),
+						{ status: 409 },
+					)
+				: new Response(JSON.stringify({ deadline: initial, ...plan }));
+		});
+	const saved = vi.fn(async () => {});
+	render(
+		<DeadlineForm
+			initial={initial}
+			deadlineId="one"
+			onSaved={saved}
+			onCancel={() => {}}
+		/>,
+	);
+	const user = userEvent.setup();
+	fireEvent.change(screen.getByLabelText("Estimate (hours)"), {
+		target: { value: "8" },
+	});
+	await user.click(screen.getByRole("button", { name: "Save" }));
+	await screen.findByRole("heading", { name: "Plan preview" });
+	await user.click(screen.getByRole("button", { name: "Save" }));
+	expect(
+		await screen.findByText("Your plan changed. Review the updated preview."),
+	).toBeVisible();
+	expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
+	expect(screen.queryByRole("heading", { name: "Plan preview" })).toBeNull();
+	expect(saved).not.toHaveBeenCalled();
+	refresh(
+		new Response(
+			JSON.stringify({
+				...plan,
+				sessions: [{ date: "2026-10-29", minutes: 120 }],
+				shortfallMinutes: 240,
+				previewVersion: updatedVersion,
+			}),
+		),
+	);
+	expect(await screen.findByText("Essay is 4h short")).toBeVisible();
+	expect(saveCalls).toBe(1);
+	await user.click(screen.getByRole("button", { name: "Save" }));
+	await waitFor(() => expect(saved).toHaveBeenCalledTimes(1));
+	const saves = fetcher.mock.calls.filter(
+		([, init]) => init?.method === "PATCH",
+	);
+	expect(JSON.parse(saves[0][1]?.body as string).previewVersion).toEqual(
+		originalVersion,
+	);
+	expect(JSON.parse(saves[1][1]?.body as string).previewVersion).toEqual(
+		updatedVersion,
+	);
+});

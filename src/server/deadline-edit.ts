@@ -7,8 +7,17 @@ import { getDb } from "#/db";
 import { deadlines, studySessions } from "#/db/schema";
 import { type DeadlineInput, deadlineSchema } from "#/lib/deadlines";
 import { planDeadline } from "#/lib/planner";
-import { commitPlan, planningState, weekdayLimits } from "./planning-state";
+import {
+	commitPlan,
+	PlanConflict,
+	planningState,
+	weekdayLimits,
+} from "./planning-state";
 import type { ApiEnv } from "./types";
+
+type DeadlineEditInput = Partial<DeadlineInput> & {
+	previewVersion?: { revision: number; today: string };
+};
 
 async function prepareEdit(c: Context<ApiEnv>) {
 	const db = getDb(c.env);
@@ -55,6 +64,12 @@ async function prepareEdit(c: Context<ApiEnv>) {
 			dueDate: shape.dueDate.optional(),
 			startDate: shape.startDate.optional(),
 			estimateMinutes: shape.estimateMinutes.optional(),
+			previewVersion: z
+				.object({
+					revision: z.number().int().nonnegative(),
+					today: z.iso.date(),
+				})
+				.optional(),
 		})
 		.safeParse(await c.req.json().catch(() => null));
 	if (!patch.success)
@@ -70,7 +85,14 @@ async function prepareEdit(c: Context<ApiEnv>) {
 				400,
 			),
 		};
-	const merged = { ...deadline, ...patch.data };
+	const { previewVersion, ...changes } = patch.data;
+	if (
+		previewVersion &&
+		(previewVersion.revision !== state.revision ||
+			previewVersion.today !== c.get("today"))
+	)
+		throw new PlanConflict();
+	const merged = { ...deadline, ...changes };
 	const planningChanged =
 		merged.dueDate !== deadline.dueDate ||
 		merged.startDate !== deadline.startDate ||
@@ -136,16 +158,19 @@ async function prepareEdit(c: Context<ApiEnv>) {
 export const deadlineEditRoutes = new Hono<ApiEnv>()
 	.post(
 		"/deadlines/:id/preview",
-		validator("json", (value) => value as Partial<DeadlineInput>),
+		validator("json", (value) => value as DeadlineEditInput),
 		async (c) => {
 			const result = await prepareEdit(c);
 			if (result.error) return result.error;
-			return c.json(result.plan);
+			return c.json({
+				...result.plan,
+				previewVersion: { revision: result.revision, today: c.get("today") },
+			});
 		},
 	)
 	.patch(
 		"/deadlines/:id",
-		validator("json", (value) => value as Partial<DeadlineInput>),
+		validator("json", (value) => value as DeadlineEditInput),
 		async (c) => {
 			const result = await prepareEdit(c);
 			if (result.error) return result.error;

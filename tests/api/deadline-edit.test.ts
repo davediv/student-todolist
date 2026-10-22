@@ -99,11 +99,16 @@ it("previews remaining hours without writes and saves the same replacement while
 		"POST",
 	);
 	expect(preview.status).toBe(200);
-	const plan = (await preview.json()) as {
+	const { previewVersion, ...plan } = (await preview.json()) as {
 		sessions: { date: string; minutes: number }[];
 		keptSessions: unknown[];
 		shortfallMinutes: number;
+		previewVersion: { revision: number; today: string };
 	};
+	expect(previewVersion).toEqual({
+		revision: expect.any(Number),
+		today: "2026-10-26",
+	});
 	expect(plan.sessions).toEqual([
 		{ date: "2026-10-27", minutes: 180 },
 		{ date: "2026-10-28", minutes: 180 },
@@ -120,6 +125,7 @@ it("previews remaining hours without writes and saves the same replacement while
 	).toBe(360);
 	const saved = await request(`/api/deadlines/${id}`, headers, {
 		estimateMinutes: 480,
+		previewVersion,
 	});
 	expect(saved.status).toBe(200);
 	expect(await saved.json()).toMatchObject(plan);
@@ -129,6 +135,83 @@ it("previews remaining hours without writes and saves the same replacement while
 		after.slice(1).map(({ date, minutes }) => ({ date, minutes })),
 	).toEqual(plan.sessions);
 	expect(after.some((row) => row.id === before[1].id)).toBe(false);
+});
+it("rejects a stale preview after another mutation and accepts a refreshed preview", async () => {
+	const { headers, id } = await setup();
+	const preview = await request(
+		`/api/deadlines/${id}/preview`,
+		headers,
+		{ estimateMinutes: 480 },
+		"POST",
+	);
+	const { previewVersion } = (await preview.json()) as {
+		previewVersion: { revision: number; today: string };
+	};
+	const mutated = await request(`/api/deadlines/${id}`, headers, {
+		title: "Renamed elsewhere",
+	});
+	expect(mutated.status).toBe(200);
+	const before = await rows(id);
+	const stale = await request(`/api/deadlines/${id}`, headers, {
+		title: "Stale edit",
+		estimateMinutes: 480,
+		previewVersion,
+	});
+	expect(stale.status).toBe(409);
+	expect(await stale.json()).toMatchObject({ error: { code: "plan_changed" } });
+	expect(await rows(id)).toEqual(before);
+	expect(
+		await getDb(env).query.deadlines.findFirst({ where: eq(deadlines.id, id) }),
+	).toMatchObject({ title: "Renamed elsewhere", estimateMinutes: 360 });
+	const refreshed = await request(
+		`/api/deadlines/${id}/preview`,
+		headers,
+		{ estimateMinutes: 480 },
+		"POST",
+	);
+	const refreshedPlan = (await refreshed.json()) as {
+		previewVersion: typeof previewVersion;
+		sessions: { date: string; minutes: number }[];
+	};
+	expect(refreshedPlan.previewVersion.revision).toBeGreaterThan(
+		previewVersion.revision,
+	);
+	const saved = await request(`/api/deadlines/${id}`, headers, {
+		estimateMinutes: 480,
+		previewVersion: refreshedPlan.previewVersion,
+	});
+	expect(saved.status).toBe(200);
+	expect(await saved.json()).toMatchObject({
+		sessions: refreshedPlan.sessions,
+	});
+});
+it("rejects an unchanged revision when the student's local day changed since preview", async () => {
+	const { headers, id } = await setup();
+	const preview = await request(
+		`/api/deadlines/${id}/preview`,
+		headers,
+		{ estimateMinutes: 480 },
+		"POST",
+	);
+	const { previewVersion } = (await preview.json()) as {
+		previewVersion: { revision: number; today: string };
+	};
+	const before = await rows(id);
+	const stale = await request(
+		`/api/deadlines/${id}`,
+		{ ...headers, "X-Local-Date": "2026-10-27" },
+		{ estimateMinutes: 480, previewVersion },
+	);
+	expect(stale.status).toBe(409);
+	expect(await stale.json()).toMatchObject({ error: { code: "plan_changed" } });
+	expect(await rows(id)).toEqual(before);
+	expect(
+		(
+			await getDb(env).query.deadlines.findFirst({
+				where: eq(deadlines.id, id),
+			})
+		)?.estimateMinutes,
+	).toBe(360);
 });
 it("respects other deadlines' capacity and reports shortfall after changing dates", async () => {
 	const { headers, id } = await setup();
