@@ -6,13 +6,22 @@ export function ConfirmDialog({
 	title,
 	description,
 	onConfirm,
+	open: controlledOpen,
+	onOpenChange,
 }: {
 	trigger: ReactNode;
 	title: string;
 	description: string;
 	onConfirm: () => void | Promise<void>;
+	open?: boolean;
+	onOpenChange?: (open: boolean) => void;
 }) {
-	const [open, setOpen] = useState(false);
+	const [internalOpen, setInternalOpen] = useState(false);
+	const open = controlledOpen ?? internalOpen;
+	function setOpen(next: boolean) {
+		if (controlledOpen === undefined) setInternalOpen(next);
+		onOpenChange?.(next);
+	}
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
 	async function confirm() {
@@ -28,7 +37,12 @@ export function ConfirmDialog({
 		}
 	}
 	return (
-		<Dialog.Root open={open} onOpenChange={setOpen}>
+		<Dialog.Root
+			open={open}
+			onOpenChange={(next) => {
+				if (!busy) setOpen(next);
+			}}
+		>
 			<Dialog.Trigger asChild>{trigger}</Dialog.Trigger>
 			<Dialog.Portal>
 				<Dialog.Overlay className="dialog-overlay" />

@@ -13,6 +13,7 @@ import { overdueRoutes } from "./overdue";
 import { PlanConflict } from "./planning-state";
 import { replanAllRoutes } from "./replan-all";
 import { seriesRoutes } from "./series";
+import { seriesScopeRoutes } from "./series-scope";
 import { sessionsRoutes } from "./sessions";
 import { todosRoutes } from "./todos";
 import type { ApiEnv } from "./types";
@@ -98,6 +99,7 @@ export function createApiApp() {
 		.route("/", daysOffRoutes)
 		.route("/", sessionsRoutes)
 		.route("/", seriesRoutes)
+		.route("/", seriesScopeRoutes)
 		.route("/", limitsRoutes)
 		.route("/", deadlinesRoutes)
 		.route("/", deadlineEditRoutes)

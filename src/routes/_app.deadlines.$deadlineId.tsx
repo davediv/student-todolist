@@ -5,6 +5,11 @@ import { DeadlineActions } from "#/components/deadlines/deadline-actions";
 import { DeadlineForm } from "#/components/deadlines/deadline-form";
 import { TypeIcon } from "#/components/deadlines/type-icon";
 import { SessionMenu } from "#/components/plan/session-menu";
+import {
+	ScopeDialog,
+	type SeriesScope,
+} from "#/components/series/scope-dialog";
+import { SeriesScopeForm } from "#/components/series/series-scope-form";
 import { Button } from "#/components/ui/button";
 import { deadlineQueryOptions } from "#/lib/deadlines-query";
 import { formatDate, formatHours } from "#/lib/format";
@@ -24,6 +29,7 @@ export const Route = createFileRoute("/_app/deadlines/$deadlineId")({
 });
 function DeadlineDetail() {
 	const [editing, setEditing] = useState(false);
+	const [editScope, setEditScope] = useState<SeriesScope | null>(null);
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
 	const client = useQueryClient();
@@ -34,6 +40,7 @@ function DeadlineDetail() {
 	const showEdit = deadline.status === "active" && (editing || search.edit);
 	async function closeEdit() {
 		setEditing(false);
+		setEditScope(null);
 		if (search.edit || search.focusDue)
 			await navigate({ search: {}, replace: true });
 	}
@@ -58,7 +65,34 @@ function DeadlineDetail() {
 				<Button onClick={() => setEditing(true)}>Edit</Button>
 			)}
 			{!showEdit && <DeadlineActions deadline={deadline} detail />}
-			{showEdit && (
+			{showEdit && deadline.seriesId && !editScope && (
+				<ScopeDialog
+					open
+					action="edit"
+					onOpenChange={(open) => {
+						if (!open) void closeEdit();
+					}}
+					onSelect={setEditScope}
+				/>
+			)}
+			{showEdit && deadline.seriesId && editScope === "following" && (
+				<SeriesScopeForm
+					seriesId={deadline.seriesId}
+					occurrence={deadline}
+					onCancel={() => {
+						void closeEdit();
+					}}
+					onSaved={async () => {
+						await navigate({ to: "/deadlines" });
+						client.removeQueries({
+							queryKey: ["deadline", deadline.id],
+							exact: true,
+						});
+						await refreshPlan(client);
+					}}
+				/>
+			)}
+			{showEdit && (!deadline.seriesId || editScope === "this") && (
 				<DeadlineForm
 					deadlineId={deadlineId}
 					initial={deadline}
