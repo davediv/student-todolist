@@ -1,8 +1,11 @@
-import { cloudflareTest } from "@cloudflare/vitest-pool-workers";
+import {
+	cloudflareTest,
+	readD1Migrations,
+} from "@cloudflare/vitest-pool-workers";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
-export default defineConfig({
+export default defineConfig(async () => ({
 	test: {
 		projects: [
 			{
@@ -32,8 +35,13 @@ export default defineConfig({
 						miniflare: { compatibilityDate: "2026-08-15" },
 					}),
 				],
-				test: { name: "api", include: ["tests/api/**/*.test.ts"] },
+				test: {
+					name: "api",
+					provide: { migrations: await readD1Migrations("./migrations") },
+					include: ["tests/api/**/*.test.ts"],
+					setupFiles: ["./tests/api/setup.ts"],
+				},
 			},
 		],
 	},
-});
+}));
