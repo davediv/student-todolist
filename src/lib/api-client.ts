@@ -6,6 +6,7 @@ export class ApiError extends Error {
 		public code: string,
 		message: string,
 		public status: number,
+		public fields?: Record<string, string[] | undefined>,
 	) {
 		super(message);
 		this.name = "ApiError";
@@ -25,12 +26,17 @@ export function createApiClient(
 			});
 			if (!response.ok) {
 				const body = (await response.json().catch(() => null)) as {
-					error?: { code: string; message: string };
+					error?: {
+						code: string;
+						message: string;
+						fields?: Record<string, string[] | undefined>;
+					};
 				} | null;
 				throw new ApiError(
 					body?.error?.code ?? "request_failed",
 					body?.error?.message ?? "Request failed. Please try again.",
 					response.status,
+					body?.error?.fields,
 				);
 			}
 			return response;

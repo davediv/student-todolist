@@ -5,12 +5,15 @@ import {
 	RouterProvider,
 } from "@tanstack/react-router";
 import { render } from "@testing-library/react";
+import { deadlinesQueryOptions } from "../../src/lib/deadlines-query";
 import { defaultLimits, type StudyLimits } from "../../src/lib/limits";
 import { limitsQueryOptions } from "../../src/lib/limits-query";
 import { sessionQueryOptions } from "../../src/lib/session";
 import { Route as root } from "../../src/routes/__root";
 import { Route as app } from "../../src/routes/_app";
 import { Route as deadlines } from "../../src/routes/_app.deadlines";
+import { Route as deadlineDetail } from "../../src/routes/_app.deadlines.$deadlineId";
+import { Route as deadlineIndex } from "../../src/routes/_app.deadlines.index";
 import { Route as index } from "../../src/routes/_app.index";
 import { Route as settings } from "../../src/routes/_app.settings";
 import { Route as upcoming } from "../../src/routes/_app.upcoming";
@@ -55,11 +58,24 @@ const routeTree = root.addChildren([
 			path: "/upcoming",
 			getParentRoute: () => appRoute,
 		} as never),
-		deadlines.update({
-			id: "/deadlines",
-			path: "/deadlines",
-			getParentRoute: () => appRoute,
-		} as never),
+		deadlines
+			.update({
+				id: "/deadlines",
+				path: "/deadlines",
+				getParentRoute: () => appRoute,
+			} as never)
+			.addChildren([
+				deadlineIndex.update({
+					id: "/",
+					path: "/",
+					getParentRoute: () => deadlines,
+				} as never),
+				deadlineDetail.update({
+					id: "/$deadlineId",
+					path: "/$deadlineId",
+					getParentRoute: () => deadlines,
+				} as never),
+			]),
 		settings.update({
 			id: "/settings",
 			path: "/settings",
@@ -78,6 +94,10 @@ export async function renderRoute(
 	});
 	queryClient.setQueryData(sessionQueryOptions.queryKey, user, { updatedAt });
 	queryClient.setQueryData(limitsQueryOptions.queryKey, limits);
+	queryClient.setQueryData(deadlinesQueryOptions.queryKey, []);
+	queryClient.setQueryDefaults(deadlinesQueryOptions.queryKey, {
+		staleTime: Infinity,
+	});
 	const router = createRouter({
 		routeTree,
 		history: createMemoryHistory({ initialEntries: [path] }),

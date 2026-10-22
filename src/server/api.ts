@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getDb } from "#/db";
 import { activityDays } from "#/db/schema";
 import { getAuth } from "#/lib/auth";
+import { deadlinesRoutes } from "./deadlines";
 import { limitsRoutes } from "./limits";
 import type { ApiEnv } from "./types";
 export function createApiApp() {
@@ -76,6 +77,7 @@ export function createApiApp() {
 	});
 	return app
 		.route("/", limitsRoutes)
+		.route("/", deadlinesRoutes)
 		.get("/health", (c) => c.json({ ok: true }))
 		.get("/me", (c) => {
 			const { id, name, email, image } = c.get("user");

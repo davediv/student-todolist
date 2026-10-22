@@ -4,6 +4,7 @@ import {
 	primaryKey,
 	sqliteTable,
 	text,
+	uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 
 const timestamps = () => ({
@@ -102,3 +103,49 @@ export const studyLimits = sqliteTable("study_limits", {
 		.notNull()
 		.$defaultFn(() => new Date()),
 });
+
+export const deadlines = sqliteTable(
+	"deadlines",
+	{
+		id: text("id").primaryKey(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		title: text("title").notNull(),
+		type: text("type", {
+			enum: ["assignment", "exam", "project", "reading", "other"],
+		}).notNull(),
+		dueDate: text("due_date").notNull(),
+		startDate: text("start_date").notNull(),
+		estimateMinutes: integer("estimate_minutes").notNull(),
+		notes: text("notes").notNull().default(""),
+		status: text("status", { enum: ["active", "done"] })
+			.notNull()
+			.default("active"),
+		doneAt: integer("done_at", { mode: "timestamp_ms" }),
+		createdAt: integer("created_at", { mode: "timestamp_ms" })
+			.notNull()
+			.$defaultFn(() => new Date()),
+	},
+	(t) => [index("deadlines_user_due_idx").on(t.userId, t.dueDate)],
+);
+export const studySessions = sqliteTable(
+	"study_sessions",
+	{
+		id: text("id").primaryKey(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		deadlineId: text("deadline_id")
+			.notNull()
+			.references(() => deadlines.id, { onDelete: "cascade" }),
+		date: text("date").notNull(),
+		minutes: integer("minutes").notNull(),
+		ticked: integer("ticked", { mode: "boolean" }).notNull().default(false),
+		tickedAt: integer("ticked_at", { mode: "timestamp_ms" }),
+	},
+	(t) => [
+		uniqueIndex("study_sessions_deadline_date_idx").on(t.deadlineId, t.date),
+		index("study_sessions_user_date_idx").on(t.userId, t.date),
+	],
+);

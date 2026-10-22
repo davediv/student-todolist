@@ -17,6 +17,8 @@ import { Route as AppDeadlinesRouteImport } from './routes/_app.deadlines'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppUpcomingRouteImport } from './routes/_app.upcoming'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
+import { Route as AppDeadlinesIndexRouteImport } from './routes/_app.deadlines.index'
+import { Route as AppDeadlinesDeadlineIdRouteImport } from './routes/_app.deadlines.$deadlineId'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -57,35 +59,50 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
   path: '/api/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppDeadlinesIndexRoute = AppDeadlinesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppDeadlinesRoute,
+} as any)
+const AppDeadlinesDeadlineIdRoute = AppDeadlinesDeadlineIdRouteImport.update({
+  id: '/$deadlineId',
+  path: '/$deadlineId',
+  getParentRoute: () => AppDeadlinesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/sign-in': typeof SignInRoute
   '/welcome': typeof WelcomeRoute
-  '/deadlines': typeof AppDeadlinesRoute
+  '/deadlines': typeof AppDeadlinesRouteWithChildren
   '/settings': typeof AppSettingsRoute
   '/upcoming': typeof AppUpcomingRoute
   '/api/$': typeof ApiSplatRoute
+  '/deadlines/$deadlineId': typeof AppDeadlinesDeadlineIdRoute
+  '/deadlines/': typeof AppDeadlinesIndexRoute
 }
 export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/welcome': typeof WelcomeRoute
-  '/deadlines': typeof AppDeadlinesRoute
   '/settings': typeof AppSettingsRoute
   '/upcoming': typeof AppUpcomingRoute
   '/api/$': typeof ApiSplatRoute
   '/': typeof AppIndexRoute
+  '/deadlines/$deadlineId': typeof AppDeadlinesDeadlineIdRoute
+  '/deadlines': typeof AppDeadlinesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/sign-in': typeof SignInRoute
   '/welcome': typeof WelcomeRoute
-  '/_app/deadlines': typeof AppDeadlinesRoute
+  '/_app/deadlines': typeof AppDeadlinesRouteWithChildren
   '/_app/settings': typeof AppSettingsRoute
   '/_app/upcoming': typeof AppUpcomingRoute
   '/api/$': typeof ApiSplatRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/deadlines/$deadlineId': typeof AppDeadlinesDeadlineIdRoute
+  '/_app/deadlines/': typeof AppDeadlinesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -97,15 +114,18 @@ export interface FileRouteTypes {
     | '/settings'
     | '/upcoming'
     | '/api/$'
+    | '/deadlines/$deadlineId'
+    | '/deadlines/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/sign-in'
     | '/welcome'
-    | '/deadlines'
     | '/settings'
     | '/upcoming'
     | '/api/$'
     | '/'
+    | '/deadlines/$deadlineId'
+    | '/deadlines'
   id:
     | '__root__'
     | '/_app'
@@ -116,6 +136,8 @@ export interface FileRouteTypes {
     | '/_app/upcoming'
     | '/api/$'
     | '/_app/'
+    | '/_app/deadlines/$deadlineId'
+    | '/_app/deadlines/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -183,18 +205,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/deadlines/': {
+      id: '/_app/deadlines/'
+      path: '/'
+      fullPath: '/deadlines/'
+      preLoaderRoute: typeof AppDeadlinesIndexRouteImport
+      parentRoute: typeof AppDeadlinesRoute
+    }
+    '/_app/deadlines/$deadlineId': {
+      id: '/_app/deadlines/$deadlineId'
+      path: '/$deadlineId'
+      fullPath: '/deadlines/$deadlineId'
+      preLoaderRoute: typeof AppDeadlinesDeadlineIdRouteImport
+      parentRoute: typeof AppDeadlinesRoute
+    }
   }
 }
 
+interface AppDeadlinesRouteChildren {
+  AppDeadlinesDeadlineIdRoute: typeof AppDeadlinesDeadlineIdRoute
+  AppDeadlinesIndexRoute: typeof AppDeadlinesIndexRoute
+}
+
+const AppDeadlinesRouteChildren: AppDeadlinesRouteChildren = {
+  AppDeadlinesDeadlineIdRoute: AppDeadlinesDeadlineIdRoute,
+  AppDeadlinesIndexRoute: AppDeadlinesIndexRoute,
+}
+
+const AppDeadlinesRouteWithChildren = AppDeadlinesRoute._addFileChildren(
+  AppDeadlinesRouteChildren,
+)
+
 interface AppRouteChildren {
-  AppDeadlinesRoute: typeof AppDeadlinesRoute
+  AppDeadlinesRoute: typeof AppDeadlinesRouteWithChildren
   AppSettingsRoute: typeof AppSettingsRoute
   AppUpcomingRoute: typeof AppUpcomingRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppDeadlinesRoute: AppDeadlinesRoute,
+  AppDeadlinesRoute: AppDeadlinesRouteWithChildren,
   AppSettingsRoute: AppSettingsRoute,
   AppUpcomingRoute: AppUpcomingRoute,
   AppIndexRoute: AppIndexRoute,
