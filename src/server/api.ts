@@ -7,6 +7,7 @@ import { daysRoutes } from "./days";
 import { deadlineEditRoutes } from "./deadline-edit";
 import { deadlinesRoutes } from "./deadlines";
 import { limitsRoutes } from "./limits";
+import { overdueRoutes } from "./overdue";
 import { PlanConflict } from "./planning-state";
 import { sessionsRoutes } from "./sessions";
 import type { ApiEnv } from "./types";
@@ -85,6 +86,7 @@ export function createApiApp() {
 		return response;
 	});
 	return app
+		.route("/", overdueRoutes)
 		.route("/", daysRoutes)
 		.route("/", sessionsRoutes)
 		.route("/", limitsRoutes)

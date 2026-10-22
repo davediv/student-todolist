@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { DropdownMenu } from "radix-ui";
 import { DayView } from "#/components/plan/day-view";
+import { OverdueStrip } from "#/components/plan/overdue-strip";
 import { EmptyState } from "#/components/shared/empty-state";
 import { SkeletonRows } from "#/components/shared/skeleton";
 import { Button } from "#/components/ui/button";
@@ -50,6 +51,7 @@ function Today() {
 					</DropdownMenu.Portal>
 				</DropdownMenu.Root>
 			</div>
+			<OverdueStrip />
 			{query.isPending ? (
 				<SkeletonRows />
 			) : query.isError ? (

@@ -41,7 +41,11 @@ function renderToday() {
 it("shows the device's local date, planned hours, and accessible session details", async () => {
 	const fetcher = vi
 		.spyOn(globalThis, "fetch")
-		.mockResolvedValue(json({ days: [day] }));
+		.mockImplementation(async (url) =>
+			json(
+				String(url).includes("/overdue") ? { sessions: [] } : { days: [day] },
+			),
+		);
 	await renderToday();
 	expect(
 		await screen.findByRole("checkbox", { name: "Essay (CS101), 2h" }),
@@ -50,15 +54,20 @@ it("shows the device's local date, planned hours, and accessible session details
 	expect(screen.getByText("2h / 3h")).toBeVisible();
 	expect(screen.getByText("assignment")).toBeVisible();
 	expect(screen.getByText("Oct 30")).toHaveAttribute("datetime", "2026-10-30");
-	expect(String(fetcher.mock.calls[0][0])).toContain(
-		"from=2026-10-26&to=2026-10-26",
-	);
+	expect(
+		String(
+			fetcher.mock.calls.find(([url]) =>
+				String(url).includes("/api/days"),
+			)?.[0],
+		),
+	).toContain("from=2026-10-26&to=2026-10-26");
 });
 it("ticks and unticks with a busy checkbox, striking the title and refreshing deadline progress", async () => {
 	let ticked = false;
 	const fetcher = vi
 		.spyOn(globalThis, "fetch")
 		.mockImplementation(async (url, init) => {
+			if (String(url).includes("/overdue")) return json({ sessions: [] });
 			if (init?.method === "PATCH") {
 				ticked = JSON.parse(init.body as string).ticked;
 				return json({ session: { ...session, ticked } });
@@ -105,10 +114,12 @@ it("ticks and unticks with a busy checkbox, striking the title and refreshing de
 	).toEqual([{ ticked: true }, { ticked: false }]);
 });
 it("shows a row-level error without ticking after a failed update", async () => {
-	vi.spyOn(globalThis, "fetch").mockImplementation(async (_url, init) =>
-		init?.method === "PATCH"
-			? json({ error: { code: "internal", message: "failed" } }, 500)
-			: json({ days: [day] }),
+	vi.spyOn(globalThis, "fetch").mockImplementation(async (url, init) =>
+		String(url).includes("/overdue")
+			? json({ sessions: [] })
+			: init?.method === "PATCH"
+				? json({ error: { code: "internal", message: "failed" } }, 500)
+				: json({ days: [day] }),
 	);
 	await renderToday();
 	const user = userEvent.setup();
@@ -124,14 +135,17 @@ it("shows a row-level error without ticking after a failed update", async () => 
 });
 it("shows skeletons, then an error and a working Retry action", async () => {
 	let release: (response: Response) => void = () => {};
-	vi.spyOn(globalThis, "fetch")
-		.mockImplementationOnce(
-			() =>
-				new Promise<Response>((resolve) => {
-					release = resolve;
-				}),
-		)
-		.mockImplementation(async () => json({ days: [day] }));
+	let firstDayRequest = true;
+	vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
+		if (String(url).includes("/overdue")) return json({ sessions: [] });
+		if (firstDayRequest) {
+			firstDayRequest = false;
+			return new Promise<Response>((resolve) => {
+				release = resolve;
+			});
+		}
+		return json({ days: [day] });
+	});
 	await renderToday();
 	expect(screen.getByText("Loading Student Todo")).toBeVisible();
 	release(json({ error: { code: "internal", message: "failed" } }, 500));
@@ -144,8 +158,12 @@ it("shows skeletons, then an error and a working Retry action", async () => {
 	).toBeVisible();
 });
 it("offers Add → Deadline on an empty day and opens the deadline form", async () => {
-	vi.spyOn(globalThis, "fetch").mockResolvedValue(
-		json({ days: [{ ...day, plannedMinutes: 0, sessions: [] }] }),
+	vi.spyOn(globalThis, "fetch").mockImplementation(async (url) =>
+		json(
+			String(url).includes("/overdue")
+				? { sessions: [] }
+				: { days: [{ ...day, plannedMinutes: 0, sessions: [] }] },
+		),
 	);
 	await renderToday();
 	expect(

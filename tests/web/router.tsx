@@ -103,6 +103,8 @@ export async function renderRoute(
 	});
 	if (seedDays) {
 		const today = localDate();
+		queryClient.setQueryData(["overdue", today], { sessions: [] });
+		queryClient.setQueryDefaults(["overdue"], { staleTime: Infinity });
 		const empty = (date: string) => ({
 			date,
 			limitMinutes: 180,
