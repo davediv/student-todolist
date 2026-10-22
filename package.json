@@ -21,7 +21,11 @@
     "db:studio": "drizzle-kit studio",
     "cf-typegen": "wrangler types",
     "typecheck": "tsc --noEmit",
-    "format:check": "biome format"
+    "format:check": "biome format",
+    "test:unit": "vitest run --project unit",
+    "test:web": "vitest run --project web",
+    "test:api": "vitest run --project api",
+    "test": "vitest run"
   },
   "dependencies": {
     "@faker-js/faker": "^10.3.0",
@@ -45,6 +49,7 @@
     "cn": "^0.5.0",
     "drizzle-kit": "^0.31.9",
     "drizzle-orm": "^0.45.1",
+    "hono": "^4.12.0",
     "lucide-react": "^0.577.0",
     "radix-ui": "^1.8.1",
     "react": "^19.2.0",
@@ -52,25 +57,30 @@
     "tailwind-merge": "^3.0.2",
     "tailwindcss": "^4.1.18",
     "tw-animate-css": "^1.3.6",
-    "zod": "^4.3.6",
-    "hono": "^4.12.0"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.5",
     "@cloudflare/vite-plugin": "^1.26.0",
+    "@cloudflare/vitest-pool-workers": "^0.23.0",
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/devtools-event-client": "0.5.0",
     "@tanstack/devtools-vite": "0.8.5",
     "@tanstack/router-cli": "^1.132.0",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.8",
     "@types/better-sqlite3": "^7.6.0",
     "@types/node": "^22.20.5",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.0.1",
     "dotenv": "^17.3.1",
+    "jsdom": "^30.1.3",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2",
     "vite": "^8.0.0",
+    "vitest": "^4.1.12",
     "wrangler": "^4.151.3"
   },
   "pnpm": {
