@@ -5,6 +5,7 @@ import { FormField } from "#/components/shared/form-field";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { Textarea } from "#/components/ui/textarea";
+import { previewDeadlineEdit, updateDeadline } from "#/lib/deadline-edit-query";
 import {
 	type DeadlineInput,
 	deadlineSchema,
@@ -28,16 +29,42 @@ function messages(errors: unknown[]) {
 export function DeadlineForm({
 	onSaved,
 	onCancel,
+	initial,
+	deadlineId,
 }: {
 	onSaved: () => Promise<void>;
 	onCancel: () => void;
+	initial?: DeadlineInput;
+	deadlineId?: string;
 }) {
-	const manualStart = useRef(false);
-	const [preview, setPreview] = useState<Awaited<
-		ReturnType<typeof previewDeadline>
-	> | null>(null);
+	const manualStart = useRef(Boolean(initial));
+	const [preview, setPreview] = useState<
+		| (Awaited<ReturnType<typeof previewDeadline>> & {
+				keptSessions?: { id: string; date: string; minutes: number }[];
+		  })
+		| null
+	>(null);
 	const [error, setError] = useState("");
 	const [saving, setSaving] = useState(false);
+	function planningChanged(value: DeadlineInput) {
+		return (
+			!initial ||
+			value.dueDate !== initial.dueDate ||
+			value.startDate !== initial.startDate ||
+			value.estimateMinutes !== initial.estimateMinutes
+		);
+	}
+	const schema = deadlineSchema(
+		initial ? "0000-00-00" : localDate(),
+	).superRefine((value, context) => {
+		if (initial && planningChanged(value) && value.dueDate <= localDate()) {
+			context.addIssue({
+				code: "custom",
+				path: ["dueDate"],
+				message: "Due date must be after today",
+			});
+		}
+	});
 	const form = useForm({
 		defaultValues: {
 			title: "",
@@ -46,17 +73,31 @@ export function DeadlineForm({
 			startDate: "",
 			estimateMinutes: 0,
 			notes: "",
+			...initial,
 		} as DeadlineInput,
 		validators: {
-			onChange: deadlineSchema(localDate()),
-			onSubmit: deadlineSchema(localDate()),
+			onChange: schema,
+			onSubmit: schema,
 		},
 		onSubmit: async ({ value }) => {
 			setError("");
 			try {
-				setPreview(await previewDeadline(value));
+				if (deadlineId && !planningChanged(value)) {
+					await updateDeadline(deadlineId, value);
+					await onSaved();
+				} else {
+					setPreview(
+						await (deadlineId
+							? previewDeadlineEdit(deadlineId, value)
+							: previewDeadline(value)),
+					);
+				}
 			} catch {
-				setError("Couldn't preview — try again");
+				setError(
+					deadlineId && !planningChanged(value)
+						? "Couldn't save — try again"
+						: "Couldn't preview — try again",
+				);
 			}
 		},
 	});
@@ -64,7 +105,8 @@ export function DeadlineForm({
 		setSaving(true);
 		setError("");
 		try {
-			await createDeadline(form.state.values);
+			if (deadlineId) await updateDeadline(deadlineId, form.state.values);
+			else await createDeadline(form.state.values);
 			await onSaved();
 		} catch {
 			setError("Couldn't save — try again");
@@ -84,6 +126,27 @@ export function DeadlineForm({
 						{formatHours(preview.shortfallMinutes)} short
 					</output>
 				)}
+				{preview.keptSessions && preview.keptSessions.length > 0 && (
+					<>
+						<h4>Kept sessions</h4>
+						<ul className="session-list">
+							{preview.keptSessions.map((session) => (
+								<li key={session.id}>
+									<span>
+										{formatDate(session.date, {
+											weekday: "short",
+											month: "short",
+											day: "numeric",
+										})}{" "}
+										· Done
+									</span>
+									<strong>{formatHours(session.minutes)}</strong>
+								</li>
+							))}
+						</ul>
+					</>
+				)}
+				{deadlineId && <h4>New sessions</h4>}
 				{preview.sessions.length ? (
 					<ul className="session-list">
 						{preview.sessions.map((session) => (
@@ -100,7 +163,11 @@ export function DeadlineForm({
 						))}
 					</ul>
 				) : (
-					<p>No study time fits before the due date.</p>
+					<p>
+						{preview.shortfallMinutes > 0
+							? "No study time fits before the due date."
+							: "No new study sessions needed."}
+					</p>
 				)}
 				{error && (
 					<p className="field-error" role="alert">
@@ -133,7 +200,7 @@ export function DeadlineForm({
 				void form.handleSubmit();
 			}}
 		>
-			<h3>Add a deadline</h3>
+			<h3>{deadlineId ? "Edit deadline" : "Add a deadline"}</h3>
 			<div className="deadline-fields">
 				<form.Field name="title">
 					{(field) => (
@@ -293,7 +360,7 @@ export function DeadlineForm({
 				{(busy) => (
 					<div className="form-actions">
 						<Button type="submit" disabled={busy}>
-							{busy ? "Planning…" : "Preview plan"}
+							{busy ? "Saving…" : deadlineId ? "Save" : "Preview plan"}
 						</Button>
 						<Button
 							type="button"

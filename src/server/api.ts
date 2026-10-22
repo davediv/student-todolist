@@ -4,6 +4,7 @@ import { getDb } from "#/db";
 import { activityDays } from "#/db/schema";
 import { getAuth } from "#/lib/auth";
 import { daysRoutes } from "./days";
+import { deadlineEditRoutes } from "./deadline-edit";
 import { deadlinesRoutes } from "./deadlines";
 import { limitsRoutes } from "./limits";
 import { PlanConflict } from "./planning-state";
@@ -88,6 +89,7 @@ export function createApiApp() {
 		.route("/", sessionsRoutes)
 		.route("/", limitsRoutes)
 		.route("/", deadlinesRoutes)
+		.route("/", deadlineEditRoutes)
 		.get("/health", (c) => c.json({ ok: true }))
 		.get("/me", (c) => {
 			const { id, name, email, image } = c.get("user");
