@@ -1,3 +1,10 @@
 import { createAuthClient } from "better-auth/react";
-
-export const authClient = createAuthClient();
+import { localDate } from "./format";
+export const authClient = createAuthClient({
+	fetchOptions: {
+		credentials: "include",
+		onRequest: (context) => {
+			context.headers.set("X-Local-Date", localDate());
+		},
+	},
+});

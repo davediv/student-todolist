@@ -6,8 +6,11 @@ import {
 } from "@tanstack/react-router";
 import { render } from "@testing-library/react";
 import { Route as root } from "../../src/routes/__root";
-import { Route as index } from "../../src/routes/index";
-import { Route as upcoming } from "../../src/routes/upcoming";
+import { Route as app } from "../../src/routes/_app";
+import { Route as deadlines } from "../../src/routes/_app.deadlines";
+import { Route as index } from "../../src/routes/_app.index";
+import { Route as settings } from "../../src/routes/_app.settings";
+import { Route as upcoming } from "../../src/routes/_app.upcoming";
 
 // The document shell belongs to full browser tests, not a jsdom div.
 Object.assign(root.options, {
@@ -16,13 +19,33 @@ Object.assign(root.options, {
 	),
 });
 // Use real page routes while excluding server-only API route modules.
+const appRoute = app.update({
+	id: "/_app",
+	getParentRoute: () => root,
+} as never);
 const routeTree = root.addChildren([
-	index.update({ id: "/", path: "/", getParentRoute: () => root } as never),
-	upcoming.update({
-		id: "/upcoming",
-		path: "/upcoming",
-		getParentRoute: () => root,
-	} as never),
+	appRoute.addChildren([
+		index.update({
+			id: "/",
+			path: "/",
+			getParentRoute: () => appRoute,
+		} as never),
+		upcoming.update({
+			id: "/upcoming",
+			path: "/upcoming",
+			getParentRoute: () => appRoute,
+		} as never),
+		deadlines.update({
+			id: "/deadlines",
+			path: "/deadlines",
+			getParentRoute: () => appRoute,
+		} as never),
+		settings.update({
+			id: "/settings",
+			path: "/settings",
+			getParentRoute: () => appRoute,
+		} as never),
+	]),
 ]);
 export async function renderRoute(path = "/") {
 	const queryClient = new QueryClient({

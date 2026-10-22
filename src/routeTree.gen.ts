@@ -9,19 +9,36 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as UpcomingRouteImport } from './routes/upcoming'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AppDeadlinesRouteImport } from './routes/_app.deadlines'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppUpcomingRouteImport } from './routes/_app.upcoming'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const UpcomingRoute = UpcomingRouteImport.update({
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDeadlinesRoute = AppDeadlinesRouteImport.update({
+  id: '/deadlines',
+  path: '/deadlines',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppUpcomingRoute = AppUpcomingRouteImport.update({
   id: '/upcoming',
   path: '/upcoming',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
 } as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
   id: '/api/$',
@@ -30,50 +47,84 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/upcoming': typeof UpcomingRoute
+  '/': typeof AppIndexRoute
+  '/deadlines': typeof AppDeadlinesRoute
+  '/settings': typeof AppSettingsRoute
+  '/upcoming': typeof AppUpcomingRoute
   '/api/$': typeof ApiSplatRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/upcoming': typeof UpcomingRoute
+  '/deadlines': typeof AppDeadlinesRoute
+  '/settings': typeof AppSettingsRoute
+  '/upcoming': typeof AppUpcomingRoute
   '/api/$': typeof ApiSplatRoute
+  '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/upcoming': typeof UpcomingRoute
+  '/_app': typeof AppRouteWithChildren
+  '/_app/deadlines': typeof AppDeadlinesRoute
+  '/_app/settings': typeof AppSettingsRoute
+  '/_app/upcoming': typeof AppUpcomingRoute
   '/api/$': typeof ApiSplatRoute
+  '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/upcoming' | '/api/$'
+  fullPaths: '/' | '/deadlines' | '/settings' | '/upcoming' | '/api/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/upcoming' | '/api/$'
-  id: '__root__' | '/' | '/upcoming' | '/api/$'
+  to: '/deadlines' | '/settings' | '/upcoming' | '/api/$' | '/'
+  id:
+    | '__root__'
+    | '/_app'
+    | '/_app/deadlines'
+    | '/_app/settings'
+    | '/_app/upcoming'
+    | '/api/$'
+    | '/_app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  UpcomingRoute: typeof UpcomingRoute
+  AppRoute: typeof AppRouteWithChildren
   ApiSplatRoute: typeof ApiSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
+    '/_app': {
+      id: '/_app'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/upcoming': {
-      id: '/upcoming'
+    '/_app/': {
+      id: '/_app/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/deadlines': {
+      id: '/_app/deadlines'
+      path: '/deadlines'
+      fullPath: '/deadlines'
+      preLoaderRoute: typeof AppDeadlinesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/upcoming': {
+      id: '/_app/upcoming'
       path: '/upcoming'
       fullPath: '/upcoming'
-      preLoaderRoute: typeof UpcomingRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppUpcomingRouteImport
+      parentRoute: typeof AppRoute
     }
     '/api/$': {
       id: '/api/$'
@@ -85,9 +136,24 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppRouteChildren {
+  AppDeadlinesRoute: typeof AppDeadlinesRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppUpcomingRoute: typeof AppUpcomingRoute
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppDeadlinesRoute: AppDeadlinesRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppUpcomingRoute: AppUpcomingRoute,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  UpcomingRoute: UpcomingRoute,
+  AppRoute: AppRouteWithChildren,
   ApiSplatRoute: ApiSplatRoute,
 }
 export const routeTree = rootRouteImport
