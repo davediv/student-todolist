@@ -5,6 +5,7 @@ import { getDb } from "#/db";
 import { deadlines, studyLimits, studySessions } from "#/db/schema";
 import { deadlineSchema } from "#/lib/deadlines";
 import { planDeadline } from "#/lib/planner";
+import { commitPlan, readRevision } from "./planning-state";
 import type { ApiEnv } from "./types";
 
 async function preparePlan(c: Context<ApiEnv>) {
@@ -26,6 +27,7 @@ async function preparePlan(c: Context<ApiEnv>) {
 		};
 	const db = getDb(c.env);
 	const userId = c.get("user").id;
+	const revision = await readRevision(db, userId);
 	const limits = await db.query.studyLimits.findFirst({
 		where: eq(studyLimits.userId, userId),
 	});
@@ -70,6 +72,7 @@ async function preparePlan(c: Context<ApiEnv>) {
 		sessions: existing.map((row) => ({ ...row, isDone: row.ticked })),
 	});
 	return {
+		revision,
 		data: parsed.data,
 		plan: {
 			sessions: plan.sessions.map(({ date, minutes }) => ({ date, minutes })),
@@ -143,7 +146,7 @@ export const deadlinesRoutes = new Hono<ApiEnv>()
 		// D1 batches commit the deadline and every session atomically. Each insert
 		// stays below D1's per-statement parameter limit, even for a 200-day plan.
 		try {
-			await db.batch([
+			await commitPlan(db, deadline.userId, result.revision, [
 				db.insert(deadlines).values({
 					...deadline,
 					userId: capacityGuard(deadline.userId, result.plan.sessions),

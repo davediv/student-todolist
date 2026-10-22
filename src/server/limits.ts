@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { getDb } from "#/db";
 import { studyLimits } from "#/db/schema";
 import { limitsSchema } from "#/lib/limits";
+import { bumpRevision } from "./planning-state";
 import type { ApiEnv } from "./types";
 export const limitsRoutes = new Hono<ApiEnv>()
 	.get("/limits", async (c) => {
@@ -24,9 +25,13 @@ export const limitsRoutes = new Hono<ApiEnv>()
 				},
 				400,
 			);
-		await getDb(c.env)
-			.insert(studyLimits)
-			.values({ userId: c.get("user").id, ...parsed.data })
-			.onConflictDoUpdate({ target: studyLimits.userId, set: parsed.data });
+		const db = getDb(c.env);
+		await db.batch([
+			db
+				.insert(studyLimits)
+				.values({ userId: c.get("user").id, ...parsed.data })
+				.onConflictDoUpdate({ target: studyLimits.userId, set: parsed.data }),
+			bumpRevision(db, c.get("user").id),
+		]);
 		return c.json(parsed.data);
 	});

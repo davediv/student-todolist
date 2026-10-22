@@ -3,8 +3,11 @@ import { z } from "zod";
 import { getDb } from "#/db";
 import { activityDays } from "#/db/schema";
 import { getAuth } from "#/lib/auth";
+import { daysRoutes } from "./days";
 import { deadlinesRoutes } from "./deadlines";
 import { limitsRoutes } from "./limits";
+import { PlanConflict } from "./planning-state";
+import { sessionsRoutes } from "./sessions";
 import type { ApiEnv } from "./types";
 export function createApiApp() {
 	const app = new Hono<ApiEnv>().basePath("/api");
@@ -12,6 +15,11 @@ export function createApiApp() {
 		c.json({ error: { code: "not_found", message: "Route not found" } }, 404),
 	);
 	app.onError((error, c) => {
+		if (error instanceof PlanConflict)
+			return c.json(
+				{ error: { code: "plan_changed", message: error.message } },
+				409,
+			);
 		console.error(error.stack ?? error);
 		return c.json(
 			{ error: { code: "internal", message: "Something went wrong" } },
@@ -76,6 +84,8 @@ export function createApiApp() {
 		return response;
 	});
 	return app
+		.route("/", daysRoutes)
+		.route("/", sessionsRoutes)
 		.route("/", limitsRoutes)
 		.route("/", deadlinesRoutes)
 		.get("/health", (c) => c.json({ ok: true }))

@@ -24,6 +24,7 @@ export const user = sqliteTable("user", {
 		.notNull()
 		.default(false),
 	image: text("image"),
+	planRevision: integer("plan_revision").notNull().default(0),
 	...timestamps(),
 });
 export const session = sqliteTable(

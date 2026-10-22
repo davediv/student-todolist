@@ -6,8 +6,10 @@ import {
 } from "@tanstack/react-router";
 import { render } from "@testing-library/react";
 import { deadlinesQueryOptions } from "../../src/lib/deadlines-query";
+import { localDate } from "../../src/lib/format";
 import { defaultLimits, type StudyLimits } from "../../src/lib/limits";
 import { limitsQueryOptions } from "../../src/lib/limits-query";
+import { addDays } from "../../src/lib/planner";
 import { sessionQueryOptions } from "../../src/lib/session";
 import { Route as root } from "../../src/routes/__root";
 import { Route as app } from "../../src/routes/_app";
@@ -88,6 +90,7 @@ export async function renderRoute(
 	user: typeof student | null = student,
 	updatedAt = Date.now(),
 	limits: StudyLimits | null = defaultLimits,
+	seedDays = true,
 ) {
 	const queryClient = new QueryClient({
 		defaultOptions: { queries: { retry: false } },
@@ -98,6 +101,21 @@ export async function renderRoute(
 	queryClient.setQueryDefaults(deadlinesQueryOptions.queryKey, {
 		staleTime: Infinity,
 	});
+	if (seedDays) {
+		const today = localDate();
+		const empty = (date: string) => ({
+			date,
+			limitMinutes: 180,
+			plannedMinutes: 0,
+			overLimit: false,
+			sessions: [],
+		});
+		queryClient.setQueryData(["days", today, today], { days: [empty(today)] });
+		queryClient.setQueryData(["days", addDays(today, 1), addDays(today, 14)], {
+			days: Array.from({ length: 14 }, (_, i) => empty(addDays(today, i + 1))),
+		});
+		queryClient.setQueryDefaults(["days"], { staleTime: Infinity });
+	}
 	const router = createRouter({
 		routeTree,
 		history: createMemoryHistory({ initialEntries: [path] }),

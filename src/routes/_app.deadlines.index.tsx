@@ -8,6 +8,9 @@ import { Button } from "#/components/ui/button";
 import { deadlinesQueryOptions } from "#/lib/deadlines-query";
 import { formatDate, formatHours } from "#/lib/format";
 export const Route = createFileRoute("/_app/deadlines/")({
+	validateSearch: (search: Record<string, unknown>): { add?: boolean } => ({
+		add: search.add === true || search.add === "true",
+	}),
 	loader: ({ context }) =>
 		context.queryClient.ensureQueryData(deadlinesQueryOptions),
 	component: Deadlines,
@@ -15,7 +18,7 @@ export const Route = createFileRoute("/_app/deadlines/")({
 function Deadlines() {
 	const { data: deadlines } = useSuspenseQuery(deadlinesQueryOptions);
 	const queryClient = useQueryClient();
-	const [adding, setAdding] = useState(false);
+	const [adding, setAdding] = useState(!!Route.useSearch().add);
 	return (
 		<>
 			<p className="eyebrow">See the bigger picture</p>

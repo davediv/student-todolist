@@ -1,0 +1,1 @@
+ALTER TABLE `user` ADD `plan_revision` integer DEFAULT 0 NOT NULL;
