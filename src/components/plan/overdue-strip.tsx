@@ -7,10 +7,12 @@ import {
 	replanOverdueSessions,
 } from "#/lib/overdue-query";
 import { refreshPlan } from "#/lib/plan-cache";
+import { ReplanAllPreview } from "./replan-all-preview";
 import { SessionRow } from "./session-row";
 export function OverdueStrip() {
 	const query = useQuery(overdueQueryOptions());
 	const client = useQueryClient();
+	const [showAll, setShowAll] = useState(false);
 	const [busy, setBusy] = useState(false),
 		[error, setError] = useState("");
 	const [result, setResult] = useState<Awaited<
@@ -28,6 +30,17 @@ export function OverdueStrip() {
 			setBusy(false);
 		}
 	}
+	if (showAll)
+		return (
+			<ReplanAllPreview
+				onCancel={() => setShowAll(false)}
+				onSaved={async () => {
+					await refreshPlan(client);
+					setResult(null);
+					setShowAll(false);
+				}}
+			/>
+		);
 	if (query.isError)
 		return (
 			<div className="plan-error">
@@ -87,6 +100,11 @@ export function OverdueStrip() {
 							)}
 						</div>
 					))}
+					{result.plans.some((plan) => plan.shortfallMinutes > 0) && (
+						<Button variant="outline" onClick={() => setShowAll(true)}>
+							Re-plan all by due date
+						</Button>
+					)}
 				</section>
 			)}
 		</>

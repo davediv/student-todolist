@@ -1,6 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
+import { ReplanAllPreview } from "#/components/plan/replan-all-preview";
 import { FormField } from "#/components/shared/form-field";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
@@ -51,6 +52,7 @@ export function DeadlineForm({
 	>(null);
 	const [error, setError] = useState("");
 	const [saving, setSaving] = useState(false);
+	const [replanAll, setReplanAll] = useState(false);
 	function planningChanged(value: DeadlineInput) {
 		return (
 			!initial ||
@@ -119,6 +121,14 @@ export function DeadlineForm({
 			setSaving(false);
 		}
 	}
+	if (replanAll)
+		return (
+			<ReplanAllPreview
+				pending={{ id: deadlineId, input: form.state.values }}
+				onSaved={onSaved}
+				onCancel={() => setReplanAll(false)}
+			/>
+		);
 	if (preview)
 		return (
 			<section className="deadline-form">
@@ -130,6 +140,15 @@ export function DeadlineForm({
 						{form.state.values.title.trim()} is{" "}
 						{formatHours(preview.shortfallMinutes)} short
 					</output>
+				)}
+				{preview.shortfallMinutes > 0 && (
+					<Button
+						variant="outline"
+						disabled={saving}
+						onClick={() => setReplanAll(true)}
+					>
+						Re-plan all by due date
+					</Button>
 				)}
 				{preview.keptSessions && preview.keptSessions.length > 0 && (
 					<>

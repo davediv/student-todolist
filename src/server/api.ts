@@ -10,6 +10,7 @@ import { deadlinesRoutes } from "./deadlines";
 import { limitsRoutes } from "./limits";
 import { overdueRoutes } from "./overdue";
 import { PlanConflict } from "./planning-state";
+import { replanAllRoutes } from "./replan-all";
 import { sessionsRoutes } from "./sessions";
 import type { ApiEnv } from "./types";
 export function createApiApp() {
@@ -88,6 +89,7 @@ export function createApiApp() {
 	});
 	return app
 		.route("/", overdueRoutes)
+		.route("/", replanAllRoutes)
 		.route("/", daysRoutes)
 		.route("/", sessionsRoutes)
 		.route("/", limitsRoutes)
