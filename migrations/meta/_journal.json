@@ -50,6 +50,13 @@
       "when": 1792701044865,
       "tag": "0006_charming_morgan_stark",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1792701418818,
+      "tag": "0007_nosy_maestro",
+      "breakpoints": true
     }
   ]
 }

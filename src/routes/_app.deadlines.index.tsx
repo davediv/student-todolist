@@ -1,17 +1,22 @@
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Repeat2 } from "lucide-react";
 import { useState } from "react";
 import { DeadlineActions } from "#/components/deadlines/deadline-actions";
 import { DeadlineForm } from "#/components/deadlines/deadline-form";
 import { TypeIcon } from "#/components/deadlines/type-icon";
+import { SeriesForm } from "#/components/series/series-form";
 import { EmptyState } from "#/components/shared/empty-state";
 import { Button } from "#/components/ui/button";
 import { deadlinesQueryOptions } from "#/lib/deadlines-query";
 import { formatDate, formatHours } from "#/lib/format";
 import { refreshPlan } from "#/lib/plan-cache";
 export const Route = createFileRoute("/_app/deadlines/")({
-	validateSearch: (search: Record<string, unknown>): { add?: boolean } => ({
+	validateSearch: (
+		search: Record<string, unknown>,
+	): { add?: boolean; addSeries?: boolean } => ({
 		add: search.add === true || search.add === "true",
+		addSeries: search.addSeries === true || search.addSeries === "true",
 	}),
 	loader: ({ context }) =>
 		context.queryClient.ensureQueryData(deadlinesQueryOptions),
@@ -21,6 +26,9 @@ function Deadlines() {
 	const { data: deadlines } = useSuspenseQuery(deadlinesQueryOptions);
 	const queryClient = useQueryClient();
 	const [adding, setAdding] = useState(!!Route.useSearch().add);
+	const [addingSeries, setAddingSeries] = useState(
+		!!Route.useSearch().addSeries,
+	);
 	function list(items: typeof deadlines.active) {
 		return (
 			<ul className="deadline-list">
@@ -34,6 +42,12 @@ function Deadlines() {
 							<div>
 								<TypeIcon type={deadline.type} />
 								<h3>{deadline.title}</h3>
+								{deadline.seriesId && (
+									<span className="deadline-type">
+										<Repeat2 size={16} aria-hidden="true" />
+										<span className="sr-only">Recurring deadline</span>
+									</span>
+								)}
 								<p>Due {formatDate(deadline.dueDate)}</p>
 							</div>
 							<div className="deadline-progress">
@@ -60,12 +74,22 @@ function Deadlines() {
 			<p className="eyebrow">See the bigger picture</p>
 			<div className="page-heading">
 				<h2>Deadlines</h2>
-				{!adding && <Button onClick={() => setAdding(true)}>+ Deadline</Button>}
+				{!adding && !addingSeries && (
+					<Button onClick={() => setAdding(true)}>+ Deadline</Button>
+				)}
 			</div>
 			<p className="page-description">
 				Turn each deadline into manageable days.
 			</p>
-			{adding ? (
+			{addingSeries ? (
+				<SeriesForm
+					onCancel={() => setAddingSeries(false)}
+					onSaved={async () => {
+						await refreshPlan(queryClient);
+						setAddingSeries(false);
+					}}
+				/>
+			) : adding ? (
 				<DeadlineForm
 					onCancel={() => setAdding(false)}
 					onSaved={async () => {

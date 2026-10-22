@@ -118,6 +118,7 @@ async function prepare(c: Context<ApiEnv>) {
 		items.push({
 			...pending.input,
 			id: "pending-new",
+			seriesId: null,
 			userId,
 			status: "active",
 			createdAt: new Date(),

@@ -118,6 +118,29 @@ export const daysOff = sqliteTable(
 	(t) => [uniqueIndex("days_off_user_date_idx").on(t.userId, t.date)],
 );
 
+export const series = sqliteTable(
+	"series",
+	{
+		id: text("id").primaryKey(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		title: text("title").notNull(),
+		type: text("type", {
+			enum: ["assignment", "exam", "project", "reading", "other"],
+		}).notNull(),
+		estimateMinutes: integer("estimate_minutes").notNull(),
+		weekdays: text("weekdays", { mode: "json" }).$type<number[]>().notNull(),
+		leadDays: integer("lead_days").notNull(),
+		endDate: text("end_date").notNull(),
+		notes: text("notes").notNull().default(""),
+		createdAt: integer("created_at", { mode: "timestamp_ms" })
+			.notNull()
+			.$defaultFn(() => new Date()),
+	},
+	(t) => [index("series_user_idx").on(t.userId)],
+);
+
 export const deadlines = sqliteTable(
 	"deadlines",
 	{
@@ -129,6 +152,9 @@ export const deadlines = sqliteTable(
 		type: text("type", {
 			enum: ["assignment", "exam", "project", "reading", "other"],
 		}).notNull(),
+		seriesId: text("series_id").references(() => series.id, {
+			onDelete: "set null",
+		}),
 		dueDate: text("due_date").notNull(),
 		startDate: text("start_date").notNull(),
 		estimateMinutes: integer("estimate_minutes").notNull(),
@@ -141,7 +167,10 @@ export const deadlines = sqliteTable(
 			.notNull()
 			.$defaultFn(() => new Date()),
 	},
-	(t) => [index("deadlines_user_due_idx").on(t.userId, t.dueDate)],
+	(t) => [
+		index("deadlines_user_due_idx").on(t.userId, t.dueDate),
+		index("deadlines_series_due_idx").on(t.seriesId, t.dueDate),
+	],
 );
 export const studySessions = sqliteTable(
 	"study_sessions",

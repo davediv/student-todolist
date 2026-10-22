@@ -27,6 +27,7 @@ function deadline(
 		estimateMinutes: 360,
 		notes: "",
 		userId: "student-id",
+		seriesId: null,
 		doneAt: null,
 		createdAt: "2026-10-20T00:00:00Z",
 		tickedMinutes: 120,

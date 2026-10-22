@@ -58,6 +58,11 @@ function Today() {
 							>
 								Todo
 							</DropdownMenu.Item>
+							<DropdownMenu.Item asChild className="menu-item">
+								<Link to="/deadlines" search={{ addSeries: true }}>
+									Recurring deadline
+								</Link>
+							</DropdownMenu.Item>
 						</DropdownMenu.Content>
 					</DropdownMenu.Portal>
 				</DropdownMenu.Root>
