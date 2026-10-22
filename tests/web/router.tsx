@@ -5,13 +5,20 @@ import {
 	RouterProvider,
 } from "@tanstack/react-router";
 import { render } from "@testing-library/react";
+import { sessionQueryOptions } from "../../src/lib/session";
 import { Route as root } from "../../src/routes/__root";
 import { Route as app } from "../../src/routes/_app";
 import { Route as deadlines } from "../../src/routes/_app.deadlines";
 import { Route as index } from "../../src/routes/_app.index";
 import { Route as settings } from "../../src/routes/_app.settings";
 import { Route as upcoming } from "../../src/routes/_app.upcoming";
-
+import { Route as signIn } from "../../src/routes/sign-in";
+export const student = {
+	id: "student-id",
+	name: "Student",
+	email: "student@example.com",
+	image: null,
+};
 // The document shell belongs to full browser tests, not a jsdom div.
 Object.assign(root.options, {
 	shellComponent: ({ children }: { children: React.ReactNode }) => (
@@ -24,6 +31,11 @@ const appRoute = app.update({
 	getParentRoute: () => root,
 } as never);
 const routeTree = root.addChildren([
+	signIn.update({
+		id: "/sign-in",
+		path: "/sign-in",
+		getParentRoute: () => root,
+	} as never),
 	appRoute.addChildren([
 		index.update({
 			id: "/",
@@ -47,10 +59,14 @@ const routeTree = root.addChildren([
 		} as never),
 	]),
 ]);
-export async function renderRoute(path = "/") {
+export async function renderRoute(
+	path = "/",
+	user: typeof student | null = student,
+) {
 	const queryClient = new QueryClient({
 		defaultOptions: { queries: { retry: false } },
 	});
+	queryClient.setQueryData(sessionQueryOptions.queryKey, user);
 	const router = createRouter({
 		routeTree,
 		history: createMemoryHistory({ initialEntries: [path] }),

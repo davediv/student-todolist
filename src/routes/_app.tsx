@@ -1,6 +1,12 @@
-import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	Link,
+	Outlet,
+	redirect,
+} from "@tanstack/react-router";
 import { CalendarDays, CheckCheck, ListTodo, Settings } from "lucide-react";
 import { ToastProvider } from "#/components/shared/toast";
+import { sessionQueryOptions } from "#/lib/session";
 
 const destinations = [
 	{ to: "/", label: "Today", icon: CheckCheck },
@@ -8,7 +14,16 @@ const destinations = [
 	{ to: "/deadlines", label: "Deadlines", icon: ListTodo },
 	{ to: "/settings", label: "Settings", icon: Settings },
 ] as const;
-export const Route = createFileRoute("/_app")({ component: AppShell });
+
+export const Route = createFileRoute("/_app")({
+	ssr: false,
+	beforeLoad: async ({ context }) => {
+		const user = await context.queryClient.ensureQueryData(sessionQueryOptions);
+		if (!user) throw redirect({ to: "/sign-in" });
+		return { user };
+	},
+	component: AppShell,
+});
 function AppShell() {
 	return (
 		<ToastProvider>

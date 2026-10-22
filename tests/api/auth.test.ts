@@ -136,3 +136,28 @@ it("signs out and invalidates the session", async () => {
 		(await apiApp.request("/api/me", { headers: { cookie } }, env)).status,
 	).toBe(401);
 });
+it("starts Google OAuth with the configured callback URI", async () => {
+	const response = await apiApp.request(
+		`${env.BETTER_AUTH_URL}/api/auth/sign-in/social`,
+		{
+			method: "POST",
+			headers: {
+				"content-type": "application/json",
+				origin: env.BETTER_AUTH_URL,
+			},
+			body: JSON.stringify({
+				provider: "google",
+				callbackURL: "/",
+				errorCallbackURL: "/sign-in",
+			}),
+		},
+		env,
+	);
+	expect(response.status).toBe(200);
+	const data = (await response.json()) as { url: string };
+	const url = new URL(data.url);
+	expect(url.hostname).toBe("accounts.google.com");
+	expect(url.searchParams.get("redirect_uri")).toBe(
+		`${env.BETTER_AUTH_URL}/api/auth/callback/google`,
+	);
+});

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
+import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppDeadlinesRouteImport } from './routes/_app.deadlines'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
@@ -18,6 +19,11 @@ import { Route as ApiSplatRouteImport } from './routes/api/$'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -48,12 +54,14 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/sign-in': typeof SignInRoute
   '/deadlines': typeof AppDeadlinesRoute
   '/settings': typeof AppSettingsRoute
   '/upcoming': typeof AppUpcomingRoute
   '/api/$': typeof ApiSplatRoute
 }
 export interface FileRoutesByTo {
+  '/sign-in': typeof SignInRoute
   '/deadlines': typeof AppDeadlinesRoute
   '/settings': typeof AppSettingsRoute
   '/upcoming': typeof AppUpcomingRoute
@@ -63,6 +71,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
+  '/sign-in': typeof SignInRoute
   '/_app/deadlines': typeof AppDeadlinesRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/upcoming': typeof AppUpcomingRoute
@@ -71,12 +80,14 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/deadlines' | '/settings' | '/upcoming' | '/api/$'
+  fullPaths:
+    '/' | '/sign-in' | '/deadlines' | '/settings' | '/upcoming' | '/api/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/deadlines' | '/settings' | '/upcoming' | '/api/$' | '/'
+  to: '/sign-in' | '/deadlines' | '/settings' | '/upcoming' | '/api/$' | '/'
   id:
     | '__root__'
     | '/_app'
+    | '/sign-in'
     | '/_app/deadlines'
     | '/_app/settings'
     | '/_app/upcoming'
@@ -86,6 +97,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
+  SignInRoute: typeof SignInRoute
   ApiSplatRoute: typeof ApiSplatRoute
 }
 
@@ -96,6 +108,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/': {
@@ -154,6 +173,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
+  SignInRoute: SignInRoute,
   ApiSplatRoute: ApiSplatRoute,
 }
 export const routeTree = rootRouteImport
