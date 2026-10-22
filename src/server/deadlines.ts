@@ -100,6 +100,28 @@ function summaryQuery(db: ReturnType<typeof getDb>, userId: string) {
 		.groupBy(deadlines.id)
 		.orderBy(asc(deadlines.dueDate), asc(deadlines.createdAt));
 }
+// This predicate runs inside the first write of the transaction. A NULL
+// owner intentionally fails its NOT NULL constraint and rolls back the batch
+// if another request consumed capacity or changed limits after planning.
+function capacityGuard(
+	userId: string,
+	sessions: { date: string; minutes: number }[],
+) {
+	return sql<string>`case when exists (
+ select 1 from ${studyLimits} where ${studyLimits.userId} = ${userId}
+ and not exists (
+ select 1 from json_each(${JSON.stringify(sessions)}) planned
+ where (select coalesce(sum(${studySessions.minutes}),0) from ${studySessions}
+ where ${studySessions.userId} = ${userId}
+ and ${studySessions.date} = json_extract(planned.value,'$.date'))
+ + json_extract(planned.value,'$.minutes') >
+ case strftime('%w',json_extract(planned.value,'$.date'))
+ when '0' then ${studyLimits.sunday} when '1' then ${studyLimits.monday}
+ when '2' then ${studyLimits.tuesday} when '3' then ${studyLimits.wednesday}
+ when '4' then ${studyLimits.thursday} when '5' then ${studyLimits.friday}
+ when '6' then ${studyLimits.saturday} end
+ )) then ${userId} else null end`;
+}
 export const deadlinesRoutes = new Hono<ApiEnv>()
 	.post("/deadlines/preview", async (c) => {
 		const result = await preparePlan(c);
@@ -120,17 +142,40 @@ export const deadlinesRoutes = new Hono<ApiEnv>()
 		};
 		// D1 batches commit the deadline and every session atomically. Each insert
 		// stays below D1's per-statement parameter limit, even for a 200-day plan.
-		await db.batch([
-			db.insert(deadlines).values(deadline),
-			...result.plan.sessions.map((session) =>
-				db.insert(studySessions).values({
-					...session,
-					id: crypto.randomUUID(),
-					userId: deadline.userId,
-					deadlineId: deadline.id,
+		try {
+			await db.batch([
+				db.insert(deadlines).values({
+					...deadline,
+					userId: capacityGuard(deadline.userId, result.plan.sessions),
 				}),
-			),
-		]);
+				...result.plan.sessions.map((session) =>
+					db.insert(studySessions).values({
+						...session,
+						id: crypto.randomUUID(),
+						userId: deadline.userId,
+						deadlineId: deadline.id,
+					}),
+				),
+			]);
+		} catch (error) {
+			const cause = error instanceof Error ? error.cause : null;
+			if (
+				cause instanceof Error &&
+				cause.message.includes("NOT NULL constraint failed: deadlines.user_id")
+			)
+				return c.json(
+					{
+						error: {
+							code: "plan_changed",
+							message:
+								"Available study time changed. Please save again to refresh the plan.",
+						},
+					},
+					409,
+				);
+			throw error;
+		}
+
 		return c.json(
 			{
 				deadline: {

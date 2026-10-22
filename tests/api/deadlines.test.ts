@@ -2,7 +2,7 @@ import { env } from "cloudflare:test";
 import { eq } from "drizzle-orm";
 import { expect, it } from "vitest";
 import { getDb } from "../../src/db";
-import { deadlines, studySessions } from "../../src/db/schema";
+import { deadlines, studyLimits, studySessions } from "../../src/db/schema";
 import { defaultLimits } from "../../src/lib/limits";
 import { apiApp } from "../../src/server/api";
 import { signedInHeaders } from "./helpers";
@@ -234,4 +234,82 @@ it("saves 200 sessions within D1 statement limits and uses the user/date index",
 	expect(JSON.stringify(query.results)).toContain(
 		"study_sessions_user_date_idx",
 	);
+});
+it("never overbooks when two creates read the same free capacity", async () => {
+	const headers = await setup();
+	let arrived = 0;
+	let release = () => {};
+	const barrier = new Promise<void>((resolve) => {
+		release = resolve;
+	});
+	const database = new Proxy(env.DB, {
+		get(target, key) {
+			if (key === "batch")
+				return async (statements: D1PreparedStatement[]) => {
+					arrived++;
+					if (arrived === 2) release();
+					await barrier;
+					return target.batch(statements);
+				};
+			const value = Reflect.get(target, key);
+			return typeof value === "function" ? value.bind(target) : value;
+		},
+	});
+	const body = JSON.stringify({
+		...input,
+		dueDate: "2026-10-27",
+		estimateMinutes: 180,
+	});
+	const responses = await Promise.all(
+		[1, 2].map(() =>
+			apiApp.request(
+				"/api/deadlines",
+				{
+					method: "POST",
+					headers: { ...headers, "Content-Type": "application/json" },
+					body,
+				},
+				{ ...env, DB: database },
+			),
+		),
+	);
+	expect(responses.map((response) => response.status).sort()).toEqual([
+		201, 409,
+	]);
+	const sessions = await getDb(env).select().from(studySessions);
+	expect(sessions.reduce((sum, row) => sum + row.minutes, 0)).toBe(180);
+	expect(await getDb(env).select().from(deadlines)).toHaveLength(1);
+});
+it("rolls back a create when limits shrink between planning and writing", async () => {
+	const headers = await setup();
+	const database = new Proxy(env.DB, {
+		get(target, key) {
+			if (key === "batch")
+				return async (statements: D1PreparedStatement[]) => {
+					await getDb(env).update(studyLimits).set({ monday: 0 });
+					return target.batch(statements);
+				};
+			const value = Reflect.get(target, key);
+			return typeof value === "function" ? value.bind(target) : value;
+		},
+	});
+	const response = await apiApp.request(
+		"/api/deadlines",
+		{
+			method: "POST",
+			headers: { ...headers, "Content-Type": "application/json" },
+			body: JSON.stringify({
+				...input,
+				dueDate: "2026-10-27",
+				estimateMinutes: 180,
+			}),
+		},
+		{ ...env, DB: database },
+	);
+	expect(response.status).toBe(409);
+	expect(await response.json()).toMatchObject({
+		error: { code: "plan_changed" },
+	});
+	expect(await getDb(env).select().from(studySessions)).toHaveLength(0);
+	expect(await getDb(env).select().from(deadlines)).toHaveLength(0);
 });
