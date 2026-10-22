@@ -24,9 +24,12 @@ export function createApiApp() {
 			path.startsWith("/api/test/")
 		)
 			return next();
-		const session = await getAuth(c.env).api.getSession({
+		const { response: session, headers } = await getAuth(c.env).api.getSession({
 			headers: c.req.raw.headers,
+			returnHeaders: true,
 		});
+		for (const cookie of headers.getSetCookie())
+			c.header("Set-Cookie", cookie, { append: true });
 		if (!session)
 			return c.json(
 				{ error: { code: "unauthenticated", message: "Please sign in" } },

@@ -92,3 +92,42 @@ it("shows the account and clears the query cache on sign-out", async () => {
 		fetcher.mockRestore();
 	}
 });
+it("revalidates a stale session before entering the shell", async () => {
+	const fetcher = vi
+		.spyOn(globalThis, "fetch")
+		.mockResolvedValue(
+			new Response(
+				'{"error":{"code":"unauthenticated","message":"Please sign in"}}',
+				{ status: 401 },
+			),
+		);
+	try {
+		const { router } = await renderRoute(
+			"/settings",
+			student,
+			Date.now() - 60_000,
+		);
+		expect(
+			await screen.findByRole("button", { name: "Sign in with Google" }),
+		).toBeVisible();
+		expect(router.state.location.pathname).toBe("/sign-in");
+		expect(fetcher).toHaveBeenCalledTimes(1);
+	} finally {
+		fetcher.mockRestore();
+	}
+});
+it("revalidates a stale signed-out cache on the sign-in screen", async () => {
+	const fetcher = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+		new Response(JSON.stringify(student), {
+			headers: { "content-type": "application/json" },
+		}),
+	);
+	try {
+		const { router } = await renderRoute("/sign-in", null, Date.now() - 60_000);
+		expect(await screen.findByRole("heading", { name: "Today" })).toBeVisible();
+		expect(router.state.location.pathname).toBe("/");
+		expect(fetcher).toHaveBeenCalledTimes(1);
+	} finally {
+		fetcher.mockRestore();
+	}
+});

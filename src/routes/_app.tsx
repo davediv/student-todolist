@@ -18,7 +18,7 @@ const destinations = [
 export const Route = createFileRoute("/_app")({
 	ssr: false,
 	beforeLoad: async ({ context }) => {
-		const user = await context.queryClient.ensureQueryData(sessionQueryOptions);
+		const user = await context.queryClient.fetchQuery(sessionQueryOptions);
 		if (!user) throw redirect({ to: "/sign-in" });
 		return { user };
 	},

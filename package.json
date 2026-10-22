@@ -13,7 +13,7 @@
     "format": "biome format",
     "lint": "biome lint",
     "check": "biome check",
-    "deploy": "npm run build && wrangler deploy",
+    "deploy": "CLOUDFLARE_ENV=production npm run build && wrangler deploy --env production",
     "db:generate": "drizzle-kit generate",
     "cf-typegen": "wrangler types",
     "typecheck": "tsc --noEmit",
@@ -83,8 +83,7 @@
       "esbuild",
       "lightningcss",
       "sharp",
-      "workerd",
-      "better-sqlite3"
+      "workerd"
     ]
   }
 }

@@ -1,11 +1,15 @@
-Welcome to your new TanStack Start app!
+# Student Todo
 
 # Getting Started
+
+For local development, copy the example bindings and apply the local D1 migrations. Set a random `BETTER_AUTH_SECRET` in `.dev.vars`.
 
 To run this application:
 
 ```bash
 npm install
+cp .dev.vars.example .dev.vars
+npm run db:migrate:local
 npm run dev
 ```
 
@@ -48,9 +52,9 @@ This project uses the Cloudflare Vite plugin (configured in `vite.config.ts`) an
 
 1. Install Wrangler: `npm install -g wrangler`
 2. Authenticate: `wrangler login`
-3. Deploy: `npx wrangler deploy`
+3. Configure the production D1 database ID and bindings in `wrangler.jsonc`, then deploy with `npm run deploy`. This builds and deploys explicitly with the production environment.
 
-For production env vars, run `wrangler secret put MY_VAR` for each secret listed in `.dev.vars.example`. Public (non-secret) vars go in `wrangler.jsonc` under `vars`.
+For production env vars, run `wrangler secret put MY_VAR --env production` for each secret listed in `.dev.vars.example`. Public (non-secret) vars go in `wrangler.jsonc` under `vars`.
 
 KV, D1, R2, and Durable Object bindings are configured in `wrangler.jsonc` — see https://developers.cloudflare.com/workers/wrangler/configuration/.
 
@@ -74,30 +78,14 @@ pnpm dlx shadcn@latest add button
 
 2. Visit the [Better Auth documentation](https://www.better-auth.com) to unlock the full potential of authentication in your app.
 
-### Adding a Database (Optional)
+### Local D1 and authentication
 
-Better Auth can work in stateless mode, but to persist user data, add a database:
+The Worker uses D1 through Drizzle. `npm run db:generate` creates migrations; `npm run db:migrate:local` applies them locally.
+Open `http://localhost:3000/api/test/sign-in?email=student@example.com` for local testing. This route is disabled in production.
 
-```typescript
-// src/lib/auth.ts
-import { betterAuth } from "better-auth";
-import { Pool } from "pg";
+Real Google sign-in needs `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.dev.vars`, with `http://localhost:3000/api/auth/callback/google` registered as a redirect URI. Set `ALLOWED_EMAILS` to the permitted Google accounts.
 
-export const auth = betterAuth({
-  database: new Pool({
-    connectionString: process.env.DATABASE_URL,
-  }),
-  // ... rest of config
-});
-```
-
-Then run migrations:
-
-```bash
-npx -y @better-auth/cli migrate
-```
-
-
+Run `npm test` for all tests, or `npm run test:unit`, `npm run test:web`, and `npm run test:api` separately.
 
 ## Routing
 

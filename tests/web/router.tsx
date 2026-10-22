@@ -62,11 +62,12 @@ const routeTree = root.addChildren([
 export async function renderRoute(
 	path = "/",
 	user: typeof student | null = student,
+	updatedAt = Date.now(),
 ) {
 	const queryClient = new QueryClient({
 		defaultOptions: { queries: { retry: false } },
 	});
-	queryClient.setQueryData(sessionQueryOptions.queryKey, user);
+	queryClient.setQueryData(sessionQueryOptions.queryKey, user, { updatedAt });
 	const router = createRouter({
 		routeTree,
 		history: createMemoryHistory({ initialEntries: [path] }),

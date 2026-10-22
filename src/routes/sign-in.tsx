@@ -10,7 +10,7 @@ export const Route = createFileRoute("/sign-in")({
 	}),
 	ssr: false,
 	beforeLoad: async ({ context }) => {
-		if (await context.queryClient.ensureQueryData(sessionQueryOptions))
+		if (await context.queryClient.fetchQuery(sessionQueryOptions))
 			throw redirect({ to: "/" });
 	},
 	component: SignIn,

@@ -1,7 +1,7 @@
 import { env } from "cloudflare:test";
 import { expect, it } from "vitest";
 import { getDb } from "../../src/db";
-import { user } from "../../src/db/schema";
+import { session, user } from "../../src/db/schema";
 import { getAuth } from "../../src/lib/auth";
 import { apiApp, createApiApp } from "../../src/server/api";
 
@@ -160,4 +160,33 @@ it("starts Google OAuth with the configured callback URI", async () => {
 	expect(url.searchParams.get("redirect_uri")).toBe(
 		`${env.BETTER_AUTH_URL}/api/auth/callback/google`,
 	);
+});
+it("renews browser cookies as well as database expiry for an aged session", async () => {
+	const { cookie } = await signIn();
+	const db = getDb(env);
+	const day = 86_400_000;
+	await db.update(session).set({ expiresAt: new Date(Date.now() + 2 * day) });
+	const response = await apiApp.request(
+		"/api/me",
+		{ headers: { cookie } },
+		env,
+	);
+	expect(response.status).toBe(200);
+	expect(response.headers.get("set-cookie")).toContain("session_token=");
+	expect(response.headers.get("set-cookie")).toContain("Max-Age=604800");
+	const [renewed] = await db.select().from(session);
+	expect(renewed.expiresAt.getTime()).toBeGreaterThan(Date.now() + 6 * day);
+});
+it("expires the browser cookie when a session has expired", async () => {
+	const { cookie } = await signIn();
+	await getDb(env)
+		.update(session)
+		.set({ expiresAt: new Date(Date.now() - 1000) });
+	const response = await apiApp.request(
+		"/api/me",
+		{ headers: { cookie } },
+		env,
+	);
+	expect(response.status).toBe(401);
+	expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
 });
