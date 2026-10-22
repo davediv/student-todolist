@@ -11,6 +11,7 @@ import { apiClient } from "#/lib/api-client";
 import type { DaySession } from "#/lib/days-query";
 import { formatDate, formatHours } from "#/lib/format";
 import { refreshPlan } from "#/lib/plan-cache";
+import { SessionMenu } from "./session-menu";
 
 const icons = {
 	assignment: FileText,
@@ -61,6 +62,7 @@ export function SessionRow({ session }: { session: DaySession }) {
 					</p>
 				</div>
 				<strong>{formatHours(session.minutes)}</strong>
+				<SessionMenu session={session} disabled={tick.isPending} />
 			</div>
 			{tick.isError && (
 				<p className="field-error" role="alert">

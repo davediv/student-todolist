@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { DeadlineForm } from "#/components/deadlines/deadline-form";
 import { TypeIcon } from "#/components/deadlines/type-icon";
+import { SessionMenu } from "#/components/plan/session-menu";
 import { Button } from "#/components/ui/button";
 import { deadlineQueryOptions } from "#/lib/deadlines-query";
 import { formatDate, formatHours } from "#/lib/format";
@@ -67,6 +68,13 @@ function DeadlineDetail() {
 									{session.ticked ? " · Done" : ""}
 								</span>
 								<strong>{formatHours(session.minutes)}</strong>
+								<SessionMenu
+									session={{
+										...session,
+										title: deadline.title,
+										dueDate: deadline.dueDate,
+									}}
+								/>
 							</li>
 						))}
 					</ul>
