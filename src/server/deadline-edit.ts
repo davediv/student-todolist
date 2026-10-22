@@ -130,6 +130,7 @@ async function prepareEdit(c: Context<ApiEnv>) {
 				},
 				today: c.get("today"),
 				weekdayLimits: weekdayLimits(state.limits),
+				daysOff: state.daysOff,
 				sessions: state.sessions.map((row) => ({ ...row, isDone: row.ticked })),
 			})
 		: {

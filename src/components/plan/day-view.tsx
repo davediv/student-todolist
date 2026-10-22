@@ -34,6 +34,9 @@ export function DayView({ day, heading }: { day: PlanDay; heading?: string }) {
 					)}
 				</p>
 			</div>
+			{day.isDayOff && (
+				<p className="day-off">Day off · {formatHours(day.limitMinutes)}</p>
+			)}
 			{day.sessions.length || day.todos?.length ? (
 				<ul className="plan-sessions">
 					{day.sessions.map((session) => (

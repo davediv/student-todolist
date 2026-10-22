@@ -43,6 +43,13 @@
       "when": 1792700209762,
       "tag": "0005_bored_giant_man",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1792701044865,
+      "tag": "0006_charming_morgan_stark",
+      "breakpoints": true
     }
   ]
 }

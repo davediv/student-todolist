@@ -1,6 +1,12 @@
 import { eq, sql } from "drizzle-orm";
 import type { getDb } from "#/db";
-import { deadlines, studyLimits, studySessions, user } from "#/db/schema";
+import {
+	daysOff,
+	deadlines,
+	studyLimits,
+	studySessions,
+	user,
+} from "#/db/schema";
 
 type Db = ReturnType<typeof getDb>;
 export class PlanConflict extends Error {
@@ -73,5 +79,17 @@ export async function planningState(db: Db, userId: string) {
 		.select()
 		.from(deadlines)
 		.where(eq(deadlines.userId, userId));
-	return { revision, limits, sessions, deadlines: items };
+	const overrides = await db
+		.select()
+		.from(daysOff)
+		.where(eq(daysOff.userId, userId));
+	return {
+		revision,
+		limits,
+		sessions,
+		deadlines: items,
+		daysOff: Object.fromEntries(
+			overrides.map((row) => [row.date, row.limitMinutes]),
+		),
+	};
 }

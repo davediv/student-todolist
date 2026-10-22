@@ -4,6 +4,7 @@ import { getDb } from "#/db";
 import { activityDays } from "#/db/schema";
 import { getAuth } from "#/lib/auth";
 import { daysRoutes } from "./days";
+import { daysOffRoutes } from "./days-off";
 import { deadlineEditRoutes } from "./deadline-edit";
 import { deadlineLifecycleRoutes } from "./deadline-lifecycle";
 import { deadlinesRoutes } from "./deadlines";
@@ -93,6 +94,7 @@ export function createApiApp() {
 		.route("/", replanAllRoutes)
 		.route("/", todosRoutes)
 		.route("/", daysRoutes)
+		.route("/", daysOffRoutes)
 		.route("/", sessionsRoutes)
 		.route("/", limitsRoutes)
 		.route("/", deadlinesRoutes)

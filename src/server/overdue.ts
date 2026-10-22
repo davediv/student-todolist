@@ -63,6 +63,7 @@ export const overdueRoutes = new Hono<ApiEnv>()
 			today,
 			deadlines: items,
 			weekdayLimits: weekdayLimits(state.limits),
+			daysOff: state.daysOff,
 			sessions: state.sessions.map((row) => ({ ...row, isDone: row.ticked })),
 		});
 		const queries: Parameters<typeof commitPlan>[3] = [];

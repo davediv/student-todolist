@@ -5,6 +5,7 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { useState } from "react";
+import { DaysOffEditor } from "#/components/limits/days-off-editor";
 import { LimitsEditor } from "#/components/limits/limits-editor";
 import { useToast } from "#/components/shared/toast";
 import { Button } from "#/components/ui/button";
@@ -57,6 +58,7 @@ function Settings() {
 					/>
 				)}
 			</section>
+			<DaysOffEditor />
 			<section className="account-card">
 				<h3>Account</h3>
 				<div className="account-profile">

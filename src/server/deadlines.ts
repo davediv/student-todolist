@@ -2,7 +2,7 @@ import { and, asc, eq, getTableColumns, gte, lt, sql } from "drizzle-orm";
 import type { Context } from "hono";
 import { Hono } from "hono";
 import { getDb } from "#/db";
-import { deadlines, studyLimits, studySessions } from "#/db/schema";
+import { daysOff, deadlines, studyLimits, studySessions } from "#/db/schema";
 import { deadlineSchema } from "#/lib/deadlines";
 import { planDeadline } from "#/lib/planner";
 import { commitPlan, readRevision } from "./planning-state";
@@ -53,6 +53,10 @@ async function preparePlan(c: Context<ApiEnv>) {
 				lt(studySessions.date, parsed.data.dueDate),
 			),
 		);
+	const overrides = await db
+		.select()
+		.from(daysOff)
+		.where(eq(daysOff.userId, userId));
 	const plan = planDeadline({
 		deadline: {
 			id: "preview",
@@ -60,6 +64,9 @@ async function preparePlan(c: Context<ApiEnv>) {
 			remainingMinutes: parsed.data.estimateMinutes,
 		},
 		today: c.get("today"),
+		daysOff: Object.fromEntries(
+			overrides.map((row) => [row.date, row.limitMinutes]),
+		),
 		weekdayLimits: {
 			0: limits.sunday,
 			1: limits.monday,
@@ -118,11 +125,13 @@ function capacityGuard(
  where ${studySessions.userId} = ${userId}
  and ${studySessions.date} = json_extract(planned.value,'$.date'))
  + json_extract(planned.value,'$.minutes') >
+ coalesce((select ${daysOff.limitMinutes} from ${daysOff}
+ where ${daysOff.userId} = ${userId} and ${daysOff.date} = json_extract(planned.value,'$.date')),
  case strftime('%w',json_extract(planned.value,'$.date'))
  when '0' then ${studyLimits.sunday} when '1' then ${studyLimits.monday}
  when '2' then ${studyLimits.tuesday} when '3' then ${studyLimits.wednesday}
  when '4' then ${studyLimits.thursday} when '5' then ${studyLimits.friday}
- when '6' then ${studyLimits.saturday} end
+ when '6' then ${studyLimits.saturday} end)
  )) then ${userId} else null end`;
 }
 export const deadlinesRoutes = new Hono<ApiEnv>()

@@ -11,7 +11,13 @@ import {
 import { Hono } from "hono";
 import { z } from "zod";
 import { getDb } from "#/db";
-import { deadlines, studyLimits, studySessions, todos } from "#/db/schema";
+import {
+	daysOff,
+	deadlines,
+	studyLimits,
+	studySessions,
+	todos,
+} from "#/db/schema";
 import { addDays } from "#/lib/planner";
 import { weekdayLimits } from "./planning-state";
 import type { ApiEnv } from "./types";
@@ -97,6 +103,19 @@ export const daysRoutes = new Hono<ApiEnv>().get("/days", async (c) => {
 		)
 		.orderBy(asc(todos.createdAt), asc(todos.id));
 	const weekdays = weekdayLimits(limits);
+	const overrides = await db
+		.select()
+		.from(daysOff)
+		.where(
+			and(
+				eq(daysOff.userId, userId),
+				gte(daysOff.date, from),
+				lte(daysOff.date, to),
+			),
+		);
+	const byDayOff = new Map(
+		overrides.map((row) => [row.date, row.limitMinutes]),
+	);
 	const days = [];
 	for (let date = from; date <= to; ) {
 		const daySessions = byDate.get(date) ?? [];
@@ -105,11 +124,13 @@ export const daysRoutes = new Hono<ApiEnv>().get("/days", async (c) => {
 			0,
 		);
 		const limitMinutes =
+			byDayOff.get(date) ??
 			weekdays[
 				new Date(`${date}T00:00:00Z`).getUTCDay() as keyof typeof weekdays
 			];
 		days.push({
 			date,
+			isDayOff: byDayOff.has(date),
 			limitMinutes,
 			plannedMinutes,
 			overLimit: plannedMinutes > limitMinutes,

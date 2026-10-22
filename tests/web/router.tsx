@@ -107,10 +107,13 @@ export async function renderRoute(
 	});
 	if (seedDays) {
 		const today = localDate();
+		queryClient.setQueryData(["days-off", today], []);
+		queryClient.setQueryDefaults(["days-off"], { staleTime: Infinity });
 		queryClient.setQueryData(["overdue", today], { sessions: [], todos: [] });
 		queryClient.setQueryDefaults(["overdue"], { staleTime: Infinity });
 		const empty = (date: string) => ({
 			date,
+			isDayOff: false,
 			limitMinutes: 180,
 			plannedMinutes: 0,
 			overLimit: false,

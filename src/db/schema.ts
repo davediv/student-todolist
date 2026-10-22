@@ -105,6 +105,19 @@ export const studyLimits = sqliteTable("study_limits", {
 		.$defaultFn(() => new Date()),
 });
 
+export const daysOff = sqliteTable(
+	"days_off",
+	{
+		id: text("id").primaryKey(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		date: text("date").notNull(),
+		limitMinutes: integer("limit_minutes").notNull(),
+	},
+	(t) => [uniqueIndex("days_off_user_date_idx").on(t.userId, t.date)],
+);
+
 export const deadlines = sqliteTable(
 	"deadlines",
 	{

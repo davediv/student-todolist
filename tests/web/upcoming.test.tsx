@@ -18,6 +18,7 @@ afterEach(() => {
 function emptyDays(): PlanDay[] {
 	return Array.from({ length: 14 }, (_, i) => ({
 		date: addDays("2026-10-31", i + 1),
+		isDayOff: false,
 		limitMinutes: 180,
 		plannedMinutes: 0,
 		overLimit: false,

@@ -127,6 +127,7 @@ async function prepare(c: Context<ApiEnv>) {
 		today: c.get("today"),
 		deadlines: items,
 		weekdayLimits: weekdayLimits(state.limits),
+		daysOff: state.daysOff,
 		sessions: state.sessions.map((row) => ({ ...row, isDone: row.ticked })),
 	});
 	const plans = result.plans.map((plan) => {
