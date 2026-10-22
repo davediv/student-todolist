@@ -86,3 +86,19 @@ export const activityDays = sqliteTable(
 	},
 	(t) => [primaryKey({ columns: [t.userId, t.date] })],
 );
+
+export const studyLimits = sqliteTable("study_limits", {
+	userId: text("user_id")
+		.primaryKey()
+		.references(() => user.id, { onDelete: "cascade" }),
+	monday: integer("monday").notNull(),
+	tuesday: integer("tuesday").notNull(),
+	wednesday: integer("wednesday").notNull(),
+	thursday: integer("thursday").notNull(),
+	friday: integer("friday").notNull(),
+	saturday: integer("saturday").notNull(),
+	sunday: integer("sunday").notNull(),
+	setAt: integer("set_at", { mode: "timestamp_ms" })
+		.notNull()
+		.$defaultFn(() => new Date()),
+});

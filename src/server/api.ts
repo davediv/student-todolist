@@ -2,12 +2,11 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { getDb } from "#/db";
 import { activityDays } from "#/db/schema";
-import { type AuthUser, getAuth } from "#/lib/auth";
+import { getAuth } from "#/lib/auth";
+import { limitsRoutes } from "./limits";
+import type { ApiEnv } from "./types";
 export function createApiApp() {
-	const app = new Hono<{
-		Bindings: Env;
-		Variables: { user: AuthUser; today: string };
-	}>().basePath("/api");
+	const app = new Hono<ApiEnv>().basePath("/api");
 	app.notFound((c) =>
 		c.json({ error: { code: "not_found", message: "Route not found" } }, 404),
 	);
@@ -76,6 +75,7 @@ export function createApiApp() {
 		return response;
 	});
 	return app
+		.route("/", limitsRoutes)
 		.get("/health", (c) => c.json({ ok: true }))
 		.get("/me", (c) => {
 			const { id, name, email, image } = c.get("user");

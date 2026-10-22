@@ -5,6 +5,8 @@ import {
 	RouterProvider,
 } from "@tanstack/react-router";
 import { render } from "@testing-library/react";
+import { defaultLimits, type StudyLimits } from "../../src/lib/limits";
+import { limitsQueryOptions } from "../../src/lib/limits-query";
 import { sessionQueryOptions } from "../../src/lib/session";
 import { Route as root } from "../../src/routes/__root";
 import { Route as app } from "../../src/routes/_app";
@@ -13,6 +15,7 @@ import { Route as index } from "../../src/routes/_app.index";
 import { Route as settings } from "../../src/routes/_app.settings";
 import { Route as upcoming } from "../../src/routes/_app.upcoming";
 import { Route as signIn } from "../../src/routes/sign-in";
+import { Route as welcome } from "../../src/routes/welcome";
 export const student = {
 	id: "student-id",
 	name: "Student",
@@ -31,6 +34,11 @@ const appRoute = app.update({
 	getParentRoute: () => root,
 } as never);
 const routeTree = root.addChildren([
+	welcome.update({
+		id: "/welcome",
+		path: "/welcome",
+		getParentRoute: () => root,
+	} as never),
 	signIn.update({
 		id: "/sign-in",
 		path: "/sign-in",
@@ -63,11 +71,13 @@ export async function renderRoute(
 	path = "/",
 	user: typeof student | null = student,
 	updatedAt = Date.now(),
+	limits: StudyLimits | null = defaultLimits,
 ) {
 	const queryClient = new QueryClient({
 		defaultOptions: { queries: { retry: false } },
 	});
 	queryClient.setQueryData(sessionQueryOptions.queryKey, user, { updatedAt });
+	queryClient.setQueryData(limitsQueryOptions.queryKey, limits);
 	const router = createRouter({
 		routeTree,
 		history: createMemoryHistory({ initialEntries: [path] }),

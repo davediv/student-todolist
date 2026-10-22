@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-router";
 import { CalendarDays, CheckCheck, ListTodo, Settings } from "lucide-react";
 import { ToastProvider } from "#/components/shared/toast";
+import { limitsQueryOptions } from "#/lib/limits-query";
 import { sessionQueryOptions } from "#/lib/session";
 
 const destinations = [
@@ -20,7 +21,9 @@ export const Route = createFileRoute("/_app")({
 	beforeLoad: async ({ context }) => {
 		const user = await context.queryClient.fetchQuery(sessionQueryOptions);
 		if (!user) throw redirect({ to: "/sign-in" });
-		return { user };
+		const limits = await context.queryClient.fetchQuery(limitsQueryOptions);
+		if (!limits) throw redirect({ to: "/welcome" });
+		return { user, limits };
 	},
 	component: AppShell,
 });

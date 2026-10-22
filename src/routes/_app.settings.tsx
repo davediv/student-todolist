@@ -1,15 +1,20 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import {
 	createFileRoute,
 	useNavigate,
 	useRouter,
 } from "@tanstack/react-router";
 import { useState } from "react";
+import { LimitsEditor } from "#/components/limits/limits-editor";
+import { useToast } from "#/components/shared/toast";
 import { Button } from "#/components/ui/button";
 import { authClient } from "#/lib/auth-client";
+import { limitsQueryOptions, saveLimits } from "#/lib/limits-query";
 export const Route = createFileRoute("/_app/settings")({ component: Settings });
 function Settings() {
 	const { user } = Route.useRouteContext();
+	const { data: limits } = useSuspenseQuery(limitsQueryOptions);
+	const toast = useToast();
 	const queryClient = useQueryClient();
 	const router = useRouter();
 	const navigate = useNavigate();
@@ -36,6 +41,22 @@ function Settings() {
 			<p className="page-description">
 				Build a study rhythm that fits your week.
 			</p>
+			<section className="settings-section">
+				<h3>Study limits</h3>
+				<p className="page-description">
+					Hours available each day. Existing sessions stay where they are.
+				</p>
+				{limits && (
+					<LimitsEditor
+						initial={limits}
+						onSave={async (values) => {
+							const saved = await saveLimits(values);
+							queryClient.setQueryData(limitsQueryOptions.queryKey, saved);
+							toast("Study limits saved");
+						}}
+					/>
+				)}
+			</section>
 			<section className="account-card">
 				<h3>Account</h3>
 				<div className="account-profile">
