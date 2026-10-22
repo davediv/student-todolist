@@ -27,3 +27,17 @@ export async function createDeadline(input: DeadlineInput) {
 	if (response.status === 201) return response.json();
 	throw new Error("Could not save deadline");
 }
+export async function markDeadlineDone(id: string) {
+	const response = await apiClient.api.deadlines[":id"].done.$post({
+		param: { id },
+	});
+	if (response.status === 200) return response.json();
+	throw new Error("Could not mark deadline done");
+}
+export async function deleteDeadline(id: string) {
+	const response = await apiClient.api.deadlines[":id"].$delete({
+		param: { id },
+	});
+	if (response.status === 200) return response.json();
+	throw new Error("Could not delete deadline");
+}

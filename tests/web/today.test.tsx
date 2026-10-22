@@ -74,17 +74,21 @@ it("ticks and unticks with a busy checkbox, striking the title and refreshing de
 			}
 			if (String(url).includes("/api/days"))
 				return json({ days: [{ ...day, sessions: [{ ...session, ticked }] }] });
-			return json([
-				{
-					id: "essay",
-					title: session.title,
-					type: "assignment",
-					dueDate: session.dueDate,
-					tickedMinutes: ticked ? 120 : 0,
-					estimateMinutes: 360,
-					unplannedMinutes: 0,
-				},
-			]);
+			return json({
+				pastDue: [],
+				done: [],
+				active: [
+					{
+						id: "essay",
+						title: session.title,
+						type: "assignment",
+						dueDate: session.dueDate,
+						tickedMinutes: ticked ? 120 : 0,
+						estimateMinutes: 360,
+						unplannedMinutes: 0,
+					},
+				],
+			});
 		});
 	await renderToday();
 	const user = userEvent.setup();

@@ -165,15 +165,18 @@ it("lists active deadlines by due date with accurate progress and isolates owner
 		.update(studySessions)
 		.set({ ticked: true })
 		.where(eq(studySessions.id, firstSession.id));
-	const list = (await (
+	const groups = (await (
 		await apiApp.request("/api/deadlines", { headers }, env)
 	).json()) as {
-		id: string;
-		title: string;
-		tickedMinutes: number;
-		plannedMinutes: number;
-		unplannedMinutes: number;
-	}[];
+		active: {
+			id: string;
+			title: string;
+			tickedMinutes: number;
+			plannedMinutes: number;
+			unplannedMinutes: number;
+		}[];
+	};
+	const list = groups.active;
 	expect(list.map((row) => row.title)).toEqual([
 		"Earlier exam",
 		"Large project",
@@ -196,14 +199,17 @@ it("lists active deadlines by due date with accurate progress and isolates owner
 		await (
 			await apiApp.request("/api/deadlines", { headers: friend }, env)
 		).json(),
-	).toEqual([]);
+	).toEqual({ pastDue: [], active: [], done: [] });
 	await getDb(env)
 		.update(deadlines)
 		.set({ status: "done" })
 		.where(eq(deadlines.id, early.deadline.id));
 	expect(
 		await (await apiApp.request("/api/deadlines", { headers }, env)).json(),
-	).toHaveLength(1);
+	).toMatchObject({
+		active: [expect.objectContaining({ id: late.deadline.id })],
+		done: [expect.objectContaining({ id: early.deadline.id })],
+	});
 });
 it("saves 200 sessions within D1 statement limits and uses the user/date index", async () => {
 	const headers = await setup();

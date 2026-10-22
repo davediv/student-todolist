@@ -1,5 +1,5 @@
 import { useForm } from "@tanstack/react-form";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { FormField } from "#/components/shared/form-field";
 import { Button } from "#/components/ui/button";
@@ -31,12 +31,17 @@ export function DeadlineForm({
 	onCancel,
 	initial,
 	deadlineId,
+	focusDue = false,
 }: {
 	onSaved: () => Promise<void>;
 	onCancel: () => void;
 	initial?: DeadlineInput;
 	deadlineId?: string;
+	focusDue?: boolean;
 }) {
+	useEffect(() => {
+		if (focusDue) document.getElementById("deadline-due")?.focus();
+	}, [focusDue]);
 	const manualStart = useRef(Boolean(initial));
 	const [preview, setPreview] = useState<
 		| (Awaited<ReturnType<typeof previewDeadline>> & {

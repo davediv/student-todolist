@@ -99,7 +99,7 @@ function summaryQuery(db: ReturnType<typeof getDb>, userId: string) {
 				eq(studySessions.userId, userId),
 			),
 		)
-		.where(and(eq(deadlines.userId, userId), eq(deadlines.status, "active")))
+		.where(eq(deadlines.userId, userId))
 		.groupBy(deadlines.id)
 		.orderBy(asc(deadlines.dueDate), asc(deadlines.createdAt));
 }
@@ -195,12 +195,21 @@ export const deadlinesRoutes = new Hono<ApiEnv>()
 	})
 	.get("/deadlines", async (c) => {
 		const rows = await summaryQuery(getDb(c.env), c.get("user").id);
-		return c.json(
-			rows.map((row) => ({
-				...row,
-				unplannedMinutes: Math.max(0, row.estimateMinutes - row.plannedMinutes),
-			})),
-		);
+		const summaries = rows.map((row) => ({
+			...row,
+			unplannedMinutes: Math.max(0, row.estimateMinutes - row.plannedMinutes),
+		}));
+		const groups: {
+			pastDue: typeof summaries;
+			active: typeof summaries;
+			done: typeof summaries;
+		} = { pastDue: [], active: [], done: [] };
+		for (const row of summaries) {
+			if (row.status === "done") groups.done.push(row);
+			else if (row.dueDate < c.get("today")) groups.pastDue.push(row);
+			else groups.active.push(row);
+		}
+		return c.json(groups);
 	})
 	.get("/deadlines/:id", async (c) => {
 		const db = getDb(c.env);

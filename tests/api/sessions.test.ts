@@ -56,9 +56,9 @@ it("ticks and unticks a session with timestamps and immediate deadline progress"
 	});
 	expect(ticked).toMatchObject({ ticked: true, tickedAt: expect.any(Date) });
 	const response = await apiApp.request("/api/deadlines", { headers }, env);
-	expect(await response.json()).toMatchObject([
-		{ tickedMinutes: 180, estimateMinutes: 360 },
-	]);
+	expect(await response.json()).toMatchObject({
+		active: [{ tickedMinutes: 180, estimateMinutes: 360 }],
+	});
 	await patch(session.id, headers, { ticked: true });
 	expect(
 		(
@@ -77,7 +77,7 @@ it("ticks and unticks a session with timestamps and immediate deadline progress"
 	).toMatchObject({ ticked: false, tickedAt: null });
 	expect(
 		await (await apiApp.request("/api/deadlines", { headers }, env)).json(),
-	).toMatchObject([{ tickedMinutes: 0 }]);
+	).toMatchObject({ active: [{ tickedMinutes: 0 }] });
 });
 it("returns 404 for missing sessions and another student's session", async () => {
 	const { session } = await setup();
@@ -249,7 +249,7 @@ it("deletes immediately and exposes the removed hours as unplanned", async () =>
 	).toBeUndefined();
 	expect(
 		await (await apiApp.request("/api/deadlines", { headers }, env)).json(),
-	).toMatchObject([{ unplannedMinutes: 180 }]);
+	).toMatchObject({ active: [{ unplannedMinutes: 180 }] });
 	expect(
 		(
 			await apiApp.request(

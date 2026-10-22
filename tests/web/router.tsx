@@ -97,7 +97,11 @@ export async function renderRoute(
 	});
 	queryClient.setQueryData(sessionQueryOptions.queryKey, user, { updatedAt });
 	queryClient.setQueryData(limitsQueryOptions.queryKey, limits);
-	queryClient.setQueryData(deadlinesQueryOptions.queryKey, []);
+	queryClient.setQueryData(deadlinesQueryOptions.queryKey, {
+		pastDue: [],
+		active: [],
+		done: [],
+	});
 	queryClient.setQueryDefaults(deadlinesQueryOptions.queryKey, {
 		staleTime: Infinity,
 	});
