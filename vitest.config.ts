@@ -32,7 +32,18 @@ export default defineConfig(async () => ({
 					cloudflareTest({
 						main: "./tests/api/worker.ts",
 						wrangler: { configPath: "./wrangler.jsonc" },
-						miniflare: { compatibilityDate: "2026-08-15" },
+						miniflare: {
+							compatibilityDate: "2026-08-15",
+							bindings: {
+								ENVIRONMENT: "test",
+								BETTER_AUTH_SECRET:
+									"test-secret-only-at-least-32-characters-long",
+								BETTER_AUTH_URL: "http://localhost:3000",
+								ALLOWED_EMAILS: "student@example.com,friend@example.com",
+								GOOGLE_CLIENT_ID: "test-google-client",
+								GOOGLE_CLIENT_SECRET: "test-google-secret",
+							},
+						},
 					}),
 				],
 				test: {

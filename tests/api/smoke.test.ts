@@ -9,17 +9,17 @@ it("serves health inside workerd", async () => {
 });
 it("returns JSON errors and logs the stack", async () => {
 	const log = vi.spyOn(console, "error").mockImplementation(() => {});
-	const app = createApiApp().get("/boom", () => {
+	const app = createApiApp().get("/test/boom", () => {
 		throw new Error("test failure");
 	});
-	const response = await app.request("/api/boom", {}, env);
+	const response = await app.request("/api/test/boom", {}, env);
 	expect(response.status).toBe(500);
 	expect(await response.json()).toMatchObject({ error: { code: "internal" } });
 	expect(log).toHaveBeenCalledWith(
 		expect.stringContaining("Error: test failure"),
 	);
 	log.mockRestore();
-	const missing = await apiApp.request("/api/nope", {}, env);
+	const missing = await apiApp.request("/api/test/nope", {}, env);
 	expect(missing.status).toBe(404);
 	expect(await missing.json()).toMatchObject({ error: { code: "not_found" } });
 });
