@@ -1,4 +1,5 @@
 import { TriangleAlert } from "lucide-react";
+import { TodoRow } from "#/components/todos/todo-row";
 import type { PlanDay } from "#/lib/days-query";
 import { formatDate, formatHours } from "#/lib/format";
 import { SessionRow } from "./session-row";
@@ -33,10 +34,13 @@ export function DayView({ day, heading }: { day: PlanDay; heading?: string }) {
 					)}
 				</p>
 			</div>
-			{day.sessions.length ? (
+			{day.sessions.length || day.todos?.length ? (
 				<ul className="plan-sessions">
 					{day.sessions.map((session) => (
 						<SessionRow key={session.id} session={session} />
+					))}
+					{day.todos?.map((todo) => (
+						<TodoRow key={todo.id} todo={todo} />
 					))}
 				</ul>
 			) : (

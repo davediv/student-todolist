@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { TodoRow } from "#/components/todos/todo-row";
 import { Button } from "#/components/ui/button";
 import { formatHours } from "#/lib/format";
 import {
@@ -51,20 +52,24 @@ export function OverdueStrip() {
 			</div>
 		);
 	const sessions = query.data?.sessions ?? [];
+	const todos = query.data?.todos ?? [];
 	return (
 		<>
-			{sessions.length > 0 && (
+			{sessions.length + todos.length > 0 && (
 				<section className="overdue-strip">
 					<div className="page-heading">
 						<details>
-							<summary>Overdue: {sessions.length}</summary>
+							<summary>Overdue: {sessions.length + todos.length}</summary>
 							<ul className="plan-sessions">
 								{sessions.map((session) => (
 									<SessionRow key={session.id} session={session} />
 								))}
+								{todos.map((todo) => (
+									<TodoRow key={todo.id} todo={todo} />
+								))}
 							</ul>
 						</details>
-						<Button disabled={busy} onClick={replan}>
+						<Button disabled={busy || !sessions.length} onClick={replan}>
 							{busy ? "Re-planning…" : "Re-plan"}
 						</Button>
 					</div>

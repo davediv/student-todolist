@@ -121,7 +121,7 @@ it("excludes ticked, past-due and Done work and isolates students", async () => 
 				env,
 			)
 		).json(),
-	).toEqual({ sessions: [] });
+	).toEqual({ sessions: [], todos: [] });
 });
 it("moves only overdue minutes and merges while preserving future and other rows", async () => {
 	const { headers, db } = await setup();
@@ -154,7 +154,7 @@ it("moves only overdue minutes and merges while preserving future and other rows
 		);
 	expect(
 		await (await apiApp.request("/api/overdue", { headers }, env)).json(),
-	).toEqual({ sessions: [] });
+	).toEqual({ sessions: [], todos: [] });
 });
 it("reports unplaced hours when limits are zero", async () => {
 	const { headers, db } = await setup();

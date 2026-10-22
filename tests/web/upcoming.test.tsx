@@ -22,6 +22,7 @@ function emptyDays(): PlanDay[] {
 		plannedMinutes: 0,
 		overLimit: false,
 		sessions: [],
+		todos: [],
 	}));
 }
 function plannedDays(): PlanDay[] {

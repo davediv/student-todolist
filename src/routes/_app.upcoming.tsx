@@ -34,7 +34,9 @@ function Upcoming() {
 				</div>
 			) : (
 				<>
-					{days.every((day) => day.sessions.length === 0) && (
+					{days.every(
+						(day) => day.sessions.length === 0 && !day.todos?.length,
+					) && (
 						<EmptyState
 							title="No study planned in the next 14 days"
 							description="Add a deadline to start planning your study time."

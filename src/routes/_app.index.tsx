@@ -2,10 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { DropdownMenu } from "radix-ui";
+import { useState } from "react";
 import { DayView } from "#/components/plan/day-view";
 import { OverdueStrip } from "#/components/plan/overdue-strip";
 import { EmptyState } from "#/components/shared/empty-state";
 import { SkeletonRows } from "#/components/shared/skeleton";
+import { TodoRow } from "#/components/todos/todo-row";
+import { TodoSheet } from "#/components/todos/todo-sheet";
 import { Button } from "#/components/ui/button";
 import { daysQueryOptions } from "#/lib/days-query";
 import { formatDate, localDate } from "#/lib/format";
@@ -14,6 +17,8 @@ function Today() {
 	const today = localDate();
 	const query = useQuery(daysQueryOptions(today, today));
 	const day = query.data?.days[0];
+	const anytime = query.data?.anytime ?? [];
+	const [addingTodo, setAddingTodo] = useState(false);
 	return (
 		<>
 			<p className="eyebrow">A little progress, every day</p>
@@ -47,6 +52,12 @@ function Today() {
 									Deadline
 								</Link>
 							</DropdownMenu.Item>
+							<DropdownMenu.Item
+								className="menu-item"
+								onSelect={() => setAddingTodo(true)}
+							>
+								Todo
+							</DropdownMenu.Item>
 						</DropdownMenu.Content>
 					</DropdownMenu.Portal>
 				</DropdownMenu.Root>
@@ -61,7 +72,8 @@ function Today() {
 						Retry
 					</Button>
 				</div>
-			) : day?.sessions.length ? (
+			) : day &&
+				(day.sessions.length || day.todos?.length || anytime.length) ? (
 				<DayView day={day} heading="Your study plan" />
 			) : (
 				<>
@@ -72,6 +84,17 @@ function Today() {
 					/>
 				</>
 			)}
+			{anytime.length > 0 && (
+				<section className="day-card" aria-label="Anytime">
+					<h3>Anytime</h3>
+					<ul className="plan-sessions">
+						{anytime.map((todo) => (
+							<TodoRow key={todo.id} todo={todo} />
+						))}
+					</ul>
+				</section>
+			)}
+			{addingTodo && <TodoSheet onClose={() => setAddingTodo(false)} />}
 		</>
 	);
 }

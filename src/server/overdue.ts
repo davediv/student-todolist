@@ -1,7 +1,7 @@
 import { and, asc, eq, gte, lt } from "drizzle-orm";
 import { Hono } from "hono";
 import { getDb } from "#/db";
-import { deadlines, studySessions } from "#/db/schema";
+import { deadlines, studySessions, todos } from "#/db/schema";
 import { replanOverdue } from "#/lib/planner";
 import { commitPlan, planningState, weekdayLimits } from "./planning-state";
 import type { ApiEnv } from "./types";
@@ -38,7 +38,18 @@ export const overdueRoutes = new Hono<ApiEnv>()
 				),
 			)
 			.orderBy(asc(deadlines.dueDate), asc(studySessions.date));
-		return c.json({ sessions: rows });
+		const overdueTodos = await getDb(c.env)
+			.select()
+			.from(todos)
+			.where(
+				and(
+					eq(todos.userId, c.get("user").id),
+					eq(todos.done, false),
+					lt(todos.date, c.get("today")),
+				),
+			)
+			.orderBy(asc(todos.date), asc(todos.createdAt));
+		return c.json({ sessions: rows, todos: overdueTodos });
 	})
 	.post("/replan/overdue", async (c) => {
 		const db = getDb(c.env),

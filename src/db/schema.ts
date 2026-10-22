@@ -150,3 +150,23 @@ export const studySessions = sqliteTable(
 		index("study_sessions_user_date_idx").on(t.userId, t.date),
 	],
 );
+
+export const todos = sqliteTable(
+	"todos",
+	{
+		id: text("id").primaryKey(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		title: text("title").notNull(),
+		date: text("date"),
+		done: integer("done", { mode: "boolean" }).notNull().default(false),
+		doneAt: integer("done_at", { mode: "timestamp_ms" }),
+		// Keep the student's calendar day alongside the timestamp, independent of UTC.
+		doneOn: text("done_on"),
+		createdAt: integer("created_at", { mode: "timestamp_ms" })
+			.notNull()
+			.$defaultFn(() => new Date()),
+	},
+	(t) => [index("todos_user_date_idx").on(t.userId, t.date)],
+);

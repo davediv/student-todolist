@@ -12,6 +12,7 @@ import { overdueRoutes } from "./overdue";
 import { PlanConflict } from "./planning-state";
 import { replanAllRoutes } from "./replan-all";
 import { sessionsRoutes } from "./sessions";
+import { todosRoutes } from "./todos";
 import type { ApiEnv } from "./types";
 export function createApiApp() {
 	const app = new Hono<ApiEnv>().basePath("/api");
@@ -90,6 +91,7 @@ export function createApiApp() {
 	return app
 		.route("/", overdueRoutes)
 		.route("/", replanAllRoutes)
+		.route("/", todosRoutes)
 		.route("/", daysRoutes)
 		.route("/", sessionsRoutes)
 		.route("/", limitsRoutes)

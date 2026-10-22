@@ -107,7 +107,7 @@ export async function renderRoute(
 	});
 	if (seedDays) {
 		const today = localDate();
-		queryClient.setQueryData(["overdue", today], { sessions: [] });
+		queryClient.setQueryData(["overdue", today], { sessions: [], todos: [] });
 		queryClient.setQueryDefaults(["overdue"], { staleTime: Infinity });
 		const empty = (date: string) => ({
 			date,
@@ -115,10 +115,15 @@ export async function renderRoute(
 			plannedMinutes: 0,
 			overLimit: false,
 			sessions: [],
+			todos: [],
 		});
-		queryClient.setQueryData(["days", today, today], { days: [empty(today)] });
+		queryClient.setQueryData(["days", today, today], {
+			days: [empty(today)],
+			anytime: [],
+		});
 		queryClient.setQueryData(["days", addDays(today, 1), addDays(today, 14)], {
 			days: Array.from({ length: 14 }, (_, i) => empty(addDays(today, i + 1))),
+			anytime: [],
 		});
 		queryClient.setQueryDefaults(["days"], { staleTime: Infinity });
 	}
