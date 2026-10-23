@@ -1,0 +1,42 @@
+{
+	"id": "/",
+	"name": "Student Todo",
+	"short_name": "Student Todo",
+	"description": "Plan your coursework and study time.",
+	"lang": "en",
+	"start_url": "/",
+	"scope": "/",
+	"display": "standalone",
+	"theme_color": "#f7f9f8",
+	"background_color": "#f7f9f8",
+	"color_scheme_dark": {
+		"theme_color": "#131b18",
+		"background_color": "#131b18"
+	},
+	"icons": [
+		{
+			"src": "/icons/icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/icons/icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/icons/maskable-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "/icons/maskable-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		}
+	]
+}
