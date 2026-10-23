@@ -102,6 +102,31 @@ For Google sign-in in `npm run preview`, set `BETTER_AUTH_URL` to the preview or
 
 After a schema change, review the generated SQL under `migrations/`, apply it locally, and run the affected API tests. Do not edit or delete migrations that have already been applied to production.
 
+## Performance
+
+Install Chromium once with `npx playwright install chromium`, then run these checks sequentially:
+
+```bash
+npm run bench:planner
+npm run perf:today
+```
+
+Each command builds the app and starts a temporary local Worker with its own migrated D1 database, fake authentication, and seeded student. It removes that state on exit and never uses the development or production database. The default ports are 3020 and 3021 respectively; set `BROWSER_TEST_PORT` to choose a free port. Run browser/build commands sequentially because Cloudflare's build integration shares a deployment-config pointer.
+
+The planner check seeds 50 active deadlines and their sessions, warms each preview once, then measures 20 HTTP requests per endpoint, including the response body. It reports median and nearest-rank p95; either p95 at or above 300 ms fails the command.
+
+The Today check measures navigation until a seeded study-session checkbox is visible, over five fresh Chromium contexts at 390×844 with 4× CPU slowdown. It uses Chrome's [Fast 4G preset](https://github.com/puppeteer/puppeteer/blob/main/packages/puppeteer-core/src/cdp/PredefinedNetworkConditions.ts): 8.1 Mbps download, 1.35 Mbps upload, and 165 ms latency. HTTP caches and persisted query caches start empty; service workers are blocked. The fixture uses the current Jakarta date so native browser timing remains untouched. A median at or above 2,000 ms fails the command.
+
+Measured locally on 2026-10-23, macOS arm64, Node v24.21.0:
+
+| Check | Median | p95 | Target |
+| --- | --- | --- | --- |
+| `POST /api/deadlines/preview`, 50 active deadlines | 8.8 ms | 10.8 ms | p95 <300 ms |
+| `POST /api/replan/all/preview`, 50 active deadlines | 10.0 ms | 11.4 ms | p95 <300 ms |
+| Today list visible, cold mobile load | 1,550.0 ms | — | median <2,000 ms |
+
+These are local built-app measurements, not production latency or a Google OAuth benchmark. Today starts fetching its plan in the route loader while its UI code loads.
+
 ## Code layout
 
 - `src/routes/`: TanStack Start file routes, app layout and route guards; the app uses SPA mode so calendar dates come from the student's browser.

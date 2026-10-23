@@ -13,8 +13,15 @@ import { TodoSheet } from "#/components/todos/todo-sheet";
 import { Button } from "#/components/ui/button";
 import { daysQueryOptions } from "#/lib/days-query";
 import { formatDate, localDate } from "#/lib/format";
-import { useOnline } from "#/lib/offline";
-export const Route = createFileRoute("/_app/")({ component: Today });
+import { isOnline, useOnline } from "#/lib/offline";
+export const Route = createFileRoute("/_app/")({
+	loader: ({ context }) => {
+		if (!isOnline()) return;
+		const today = localDate();
+		void context.queryClient.prefetchQuery(daysQueryOptions(today, today));
+	},
+	component: Today,
+});
 function Today() {
 	const today = localDate();
 	const online = useOnline();

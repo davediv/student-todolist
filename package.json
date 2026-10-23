@@ -25,7 +25,9 @@
     "db:migrate:local": "wrangler d1 migrations apply DB --local --config wrangler.jsonc",
     "deploy:prod": "CLOUDFLARE_ENV=production npm run build && wrangler deploy",
     "test:e2e": "playwright test",
-    "test:e2e:server": "node --import tsx scripts/browser-test-server.ts"
+    "test:e2e:server": "node --import tsx scripts/browser-test-server.ts",
+    "bench:planner": "node --import tsx scripts/bench-planner.ts",
+    "perf:today": "node --import tsx scripts/perf-today.ts"
   },
   "dependencies": {
     "@faker-js/faker": "^10.3.0",

@@ -13,6 +13,8 @@
 			"**/index.html",
 			"**/*.config.ts",
 			"**/tests/**/*",
+			"**/scripts/**/*.ts",
+			"**/build/**/*.ts",
 			"!**/playwright-report",
 			"!**/test-results",
 			"!**/blob-report",
