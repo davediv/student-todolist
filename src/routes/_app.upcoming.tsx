@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { DayView } from "#/components/plan/day-view";
 import { EmptyState } from "#/components/shared/empty-state";
 import { SkeletonRows } from "#/components/shared/skeleton";
+import { WeeklyCard } from "#/components/stats/weekly-card";
 import { Button } from "#/components/ui/button";
 import { daysQueryOptions } from "#/lib/days-query";
 import { formatDate, localDate } from "#/lib/format";
@@ -23,6 +24,7 @@ function Upcoming() {
 			<p className="page-description">
 				A little breathing room for the next two weeks.
 			</p>
+			<WeeklyCard today={today} />
 			{query.isPending ? (
 				<SkeletonRows />
 			) : query.isError ? (

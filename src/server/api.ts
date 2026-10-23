@@ -15,6 +15,7 @@ import { replanAllRoutes } from "./replan-all";
 import { seriesRoutes } from "./series";
 import { seriesScopeRoutes } from "./series-scope";
 import { sessionsRoutes } from "./sessions";
+import { statsRoutes } from "./stats";
 import { todosRoutes } from "./todos";
 import type { ApiEnv } from "./types";
 export function createApiApp() {
@@ -98,6 +99,7 @@ export function createApiApp() {
 		.route("/", daysRoutes)
 		.route("/", daysOffRoutes)
 		.route("/", sessionsRoutes)
+		.route("/", statsRoutes)
 		.route("/", seriesRoutes)
 		.route("/", seriesScopeRoutes)
 		.route("/", limitsRoutes)

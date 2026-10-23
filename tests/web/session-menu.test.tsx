@@ -77,6 +77,7 @@ it("opens by keyboard, restricts dates, and saves a move with cache refresh", as
 		["deadlines"],
 		["deadline"],
 		["overdue"],
+		["stats"],
 	]);
 });
 it("sends a resized duration in minutes using half-hour steps", async () => {
@@ -152,7 +153,7 @@ it("deletes immediately and refreshes the plan", async () => {
 		),
 	);
 	expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-	expect(invalidate).toHaveBeenCalledTimes(4);
+	expect(invalidate).toHaveBeenCalledTimes(5);
 });
 it("hides all editing actions for ticked sessions", () => {
 	setup({ ...session, ticked: true });

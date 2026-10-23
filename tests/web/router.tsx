@@ -11,6 +11,8 @@ import { defaultLimits, type StudyLimits } from "../../src/lib/limits";
 import { limitsQueryOptions } from "../../src/lib/limits-query";
 import { addDays } from "../../src/lib/planner";
 import { sessionQueryOptions } from "../../src/lib/session";
+import { weeklyStatsQueryOptions } from "../../src/lib/stats-query";
+import { recentWeeks } from "../../src/lib/week";
 import { Route as root } from "../../src/routes/__root";
 import { Route as app } from "../../src/routes/_app";
 import { Route as deadlines } from "../../src/routes/_app.deadlines";
@@ -91,6 +93,7 @@ export async function renderRoute(
 	updatedAt = Date.now(),
 	limits: StudyLimits | null = defaultLimits,
 	seedDays = true,
+	seedStats = true,
 ) {
 	const queryClient = new QueryClient({
 		defaultOptions: { queries: { retry: false } },
@@ -105,6 +108,19 @@ export async function renderRoute(
 	queryClient.setQueryDefaults(deadlinesQueryOptions.queryKey, {
 		staleTime: Infinity,
 	});
+	if (seedStats) {
+		queryClient.setQueryData(weeklyStatsQueryOptions(localDate()).queryKey, {
+			weeks: recentWeeks(localDate()).map((week) => ({
+				...week,
+				doneMinutes: 0,
+				plannedMinutes: 0,
+			})),
+		});
+		queryClient.setQueryDefaults(["stats"], {
+			staleTime: Infinity,
+			enabled: false,
+		});
+	}
 	if (seedDays) {
 		const today = localDate();
 		queryClient.setQueryData(["days-off", today], []);
