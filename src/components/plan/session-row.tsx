@@ -40,9 +40,12 @@ export function SessionRow({ session }: { session: DaySession }) {
 				<input
 					type="checkbox"
 					checked={session.ticked}
-					disabled={!online || tick.isPending}
+					disabled={!online}
+					aria-disabled={tick.isPending || undefined}
 					aria-label={`${session.title}, ${formatHours(session.minutes)}`}
-					onChange={(event) => tick.mutate(event.target.checked)}
+					onChange={(event) => {
+						if (!tick.isPending) tick.mutate(event.target.checked);
+					}}
 					title={online ? undefined : offlineHint}
 				/>
 				<Icon size={20} aria-hidden="true" />

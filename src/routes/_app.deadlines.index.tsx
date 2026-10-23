@@ -1,7 +1,7 @@
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Repeat2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DeadlineActions } from "#/components/deadlines/deadline-actions";
 import { DeadlineForm } from "#/components/deadlines/deadline-form";
 import { TypeIcon } from "#/components/deadlines/type-icon";
@@ -29,6 +29,13 @@ function Deadlines() {
 	const [addingSeries, setAddingSeries] = useState(
 		!!Route.useSearch().addSeries,
 	);
+	const addTrigger = useRef<HTMLButtonElement>(null);
+	const wasEditing = useRef(false);
+	useEffect(() => {
+		if (!adding && !addingSeries && wasEditing.current)
+			addTrigger.current?.focus();
+		wasEditing.current = adding || addingSeries;
+	}, [adding, addingSeries]);
 	function list(items: typeof deadlines.active) {
 		return (
 			<ul className="deadline-list">
@@ -75,7 +82,7 @@ function Deadlines() {
 			<div className="page-heading">
 				<h2>Deadlines</h2>
 				{!adding && !addingSeries && (
-					<MutationButton onClick={() => setAdding(true)}>
+					<MutationButton ref={addTrigger} onClick={() => setAdding(true)}>
 						+ Deadline
 					</MutationButton>
 				)}

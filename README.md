@@ -85,7 +85,9 @@ Run commands from the repository root:
 | `npm run test:unit` | Pure planning, date, and validation tests in Node |
 | `npm run test:web` | React and routing tests in jsdom |
 | `npm run test:api` | Hono, auth, and database tests in workerd with isolated local D1 |
-| `npm test` | All three test projects |
+| `npm test` | All three Vitest projects |
+| `npm run test:e2e` | Three critical browser journeys against an isolated local app |
+| `npm run test:a11y` | WCAG 2.2 AA scans in light/dark mode and keyboard journeys against an isolated built app |
 | `npm run format:check` | Check formatting |
 | `npm run lint` | Check lint rules |
 | `npm run typecheck` | Check TypeScript |
@@ -97,6 +99,8 @@ Run commands from the repository root:
 | `npm run deploy:prod` | Build the production environment and deploy it |
 
 Tests provide their own fake Google credentials and use the development-only sign-in route. They do not contact Google or a remote D1 database. The API test project needs a runtime that permits workerd to bind local sockets.
+
+Install browser binaries once with `npx playwright install chromium`. Browser tests create disposable local D1 state and fake credentials; they do not use `.dev.vars`. The accessibility suite saves axe JSON, accessibility trees, and screenshots in the Playwright report. It checks all app screens and the overdue, over-limit, and offline states, including 24×24 px controls and keyboard focus. Run browser checks and builds sequentially; the default accessibility port is 3022 (`BROWSER_TEST_PORT` overrides it).
 
 For Google sign-in in `npm run preview`, set `BETTER_AUTH_URL` to the preview origin (normally `http://localhost:4173`) before building and register that origin's `/api/auth/callback/google` URI too. Restore the local development origin before using `npm run dev` again.
 

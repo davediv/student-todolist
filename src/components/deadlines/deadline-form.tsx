@@ -44,9 +44,7 @@ export function DeadlineForm({
 	deadlineId?: string;
 	focusDue?: boolean;
 }) {
-	useEffect(() => {
-		if (focusDue) document.getElementById("deadline-due")?.focus();
-	}, [focusDue]);
+	const previewHeading = useRef<HTMLHeadingElement>(null);
 	const manualStart = useRef(Boolean(initial));
 	const online = useOnline();
 	const [preview, setPreview] = useState<
@@ -61,6 +59,13 @@ export function DeadlineForm({
 	const [refreshing, setRefreshing] = useState(false);
 	const [saving, setSaving] = useState(false);
 	const [replanAll, setReplanAll] = useState(false);
+	useEffect(() => {
+		if (preview) previewHeading.current?.focus();
+		else if (!refreshing && !replanAll)
+			document
+				.getElementById(focusDue ? "deadline-due" : "deadline-title")
+				?.focus();
+	}, [focusDue, preview, refreshing, replanAll]);
 	function planningChanged(value: DeadlineInput) {
 		return (
 			!initial ||
@@ -169,7 +174,9 @@ export function DeadlineForm({
 		return (
 			<section className="deadline-form">
 				<p className="eyebrow">A day-sized plan</p>
-				<h3>Plan preview</h3>
+				<h3 ref={previewHeading} tabIndex={-1}>
+					Plan preview
+				</h3>
 				{notice && <output>{notice}</output>}
 				<p className="preview-title">{form.state.values.title}</p>
 				{preview.shortfallMinutes > 0 && (

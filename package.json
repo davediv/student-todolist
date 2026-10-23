@@ -27,7 +27,8 @@
     "test:e2e": "playwright test",
     "test:e2e:server": "node --import tsx scripts/browser-test-server.ts",
     "bench:planner": "node --import tsx scripts/bench-planner.ts",
-    "perf:today": "node --import tsx scripts/perf-today.ts"
+    "perf:today": "node --import tsx scripts/perf-today.ts",
+    "test:a11y": "playwright test --config playwright.a11y.config.ts"
   },
   "dependencies": {
     "@faker-js/faker": "^10.3.0",
@@ -62,6 +63,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@biomejs/biome": "2.4.5",
     "@cloudflare/vite-plugin": "^1.26.0",
     "@cloudflare/vitest-pool-workers": "^0.23.0",

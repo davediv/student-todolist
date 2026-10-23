@@ -22,9 +22,12 @@ export function TodoRow({ todo }: { todo: Todo }) {
 				<input
 					type="checkbox"
 					checked={todo.done}
-					disabled={!online || tick.isPending}
+					disabled={!online}
+					aria-disabled={tick.isPending || undefined}
 					aria-label={todo.title}
-					onChange={(event) => tick.mutate(event.target.checked)}
+					onChange={(event) => {
+						if (!tick.isPending) tick.mutate(event.target.checked);
+					}}
 					title={online ? undefined : offlineHint}
 				/>
 				<span
