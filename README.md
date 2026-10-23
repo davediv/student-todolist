@@ -88,6 +88,7 @@ Run commands from the repository root:
 | `npm test` | All three Vitest projects |
 | `npm run test:e2e` | Three critical browser journeys against an isolated local app |
 | `npm run test:a11y` | WCAG 2.2 AA scans in light/dark mode and keyboard journeys against an isolated built app |
+| `npm run docs:api` | Generate the local API and planner reference with HTTP examples from an isolated built Worker |
 | `npm run format:check` | Check formatting |
 | `npm run lint` | Check lint rules |
 | `npm run typecheck` | Check TypeScript |
@@ -105,6 +106,12 @@ Install browser binaries once with `npx playwright install chromium`. Browser te
 For Google sign-in in `npm run preview`, set `BETTER_AUTH_URL` to the preview origin (normally `http://localhost:4173`) before building and register that origin's `/api/auth/callback/google` URI too. Restore the local development origin before using `npm run dev` again.
 
 After a schema change, review the generated SQL under `migrations/`, apply it locally, and run the affected API tests. Do not edit or delete migrations that have already been applied to production.
+
+## API and planner reference
+
+Run `npm run docs:api` to generate `docs/API.md`, the reference for every registered API route and the planning rules. The command calls a disposable local Worker for every example, checks the route inventory against the Hono table used by the isolation suite, and verifies the six-hour Monday-to-Friday worked example against the planner engine.
+
+The generated file remains local under the repository's existing ignored `docs/` directory. Update `scripts/api-route-contracts.ts` and `scripts/api-reference.md` before regenerating it. The command replaces the generated file only after all captures and checks succeed. It uses fake credentials and a temporary local D1 database, redacts auth tokens/cookies, and never contacts Google or production. Its default port is 3024 (`BROWSER_TEST_PORT` overrides it). Run it sequentially with other browser/build commands; it uses the same isolated build infrastructure.
 
 ## Performance
 

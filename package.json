@@ -28,7 +28,8 @@
     "test:e2e:server": "node --import tsx scripts/browser-test-server.ts",
     "bench:planner": "node --import tsx scripts/bench-planner.ts",
     "perf:today": "node --import tsx scripts/perf-today.ts",
-    "test:a11y": "playwright test --config playwright.a11y.config.ts"
+    "test:a11y": "playwright test --config playwright.a11y.config.ts",
+    "docs:api": "node --import tsx scripts/generate-api-reference.ts"
   },
   "dependencies": {
     "@faker-js/faker": "^10.3.0",
