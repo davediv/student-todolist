@@ -13,6 +13,10 @@
 			"**/index.html",
 			"**/*.config.ts",
 			"**/tests/**/*",
+			"!**/playwright-report",
+			"!**/test-results",
+			"!**/blob-report",
+			"!**/.wrangler",
 			"!**/src/routeTree.gen.ts",
 			"!**/src/styles.css"
 		]
