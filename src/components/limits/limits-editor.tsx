@@ -1,7 +1,7 @@
 import { useForm } from "@tanstack/react-form";
 import { useState } from "react";
 import { FormField } from "#/components/shared/form-field";
-import { Button } from "#/components/ui/button";
+import { MutationButton } from "#/components/shared/mutation-button";
 import { Input } from "#/components/ui/input";
 import {
 	defaultLimits,
@@ -9,6 +9,7 @@ import {
 	type StudyLimits,
 	weekdays,
 } from "#/lib/limits";
+import { useOnline } from "#/lib/offline";
 export function LimitsEditor({
 	initial,
 	onSave,
@@ -19,6 +20,7 @@ export function LimitsEditor({
 	welcome?: boolean;
 }) {
 	const [error, setError] = useState("");
+	const online = useOnline();
 	const [skipping, setSkipping] = useState(false);
 	const form = useForm({
 		defaultValues: initial,
@@ -83,6 +85,7 @@ export function LimitsEditor({
 										onChange={(event) =>
 											field.handleChange(event.target.valueAsNumber * 60)
 										}
+										disabled={!online}
 									/>
 								)}
 							</FormField>
@@ -100,18 +103,21 @@ export function LimitsEditor({
 			>
 				{([canSubmit, busy]) => (
 					<div className="form-actions">
-						<Button type="submit" disabled={!canSubmit || busy || skipping}>
+						<MutationButton
+							type="submit"
+							disabled={!canSubmit || busy || skipping}
+						>
 							{busy ? "Saving…" : "Save"}
-						</Button>
+						</MutationButton>
 						{welcome && (
-							<Button
+							<MutationButton
 								type="button"
 								variant="ghost"
 								disabled={busy || skipping}
 								onClick={skip}
 							>
 								{skipping ? "Saving…" : "Skip"}
-							</Button>
+							</MutationButton>
 						)}
 					</div>
 				)}

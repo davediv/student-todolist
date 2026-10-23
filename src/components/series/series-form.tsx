@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FormField } from "#/components/shared/form-field";
+import { MutationButton } from "#/components/shared/mutation-button";
 import { SkeletonRows } from "#/components/shared/skeleton";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
@@ -7,6 +8,7 @@ import { Textarea } from "#/components/ui/textarea";
 import { ApiError } from "#/lib/api-client";
 import { deadlineTypes } from "#/lib/deadlines";
 import { formatDate, formatHours, localDate } from "#/lib/format";
+import { offlineHint, useOnline } from "#/lib/offline";
 import { addDays } from "#/lib/planner";
 import { type SeriesInput, seriesSchema } from "#/lib/series";
 import { createSeries, previewSeries } from "#/lib/series-query";
@@ -45,6 +47,7 @@ export function SeriesForm({
 	> | null>(null);
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
+	const online = useOnline();
 	const [notice, setNotice] = useState("");
 	const [refreshing, setRefreshing] = useState(false);
 	function change<K extends keyof SeriesInput>(name: K, value: SeriesInput[K]) {
@@ -160,12 +163,12 @@ export function SeriesForm({
 					</p>
 				)}
 				<div className="form-actions">
-					<Button
+					<MutationButton
 						disabled={busy || !preview.occurrences.length}
 						onClick={confirm}
 					>
 						{busy ? "Creating…" : "Confirm"}
-					</Button>
+					</MutationButton>
 					<Button
 						variant="outline"
 						disabled={busy}
@@ -201,7 +204,7 @@ export function SeriesForm({
 							{...props}
 							autoComplete="off"
 							value={values.title}
-							disabled={busy}
+							disabled={!online || busy}
 							onChange={(event) => change("title", event.target.value)}
 						/>
 					)}
@@ -216,7 +219,7 @@ export function SeriesForm({
 							{...props}
 							className="native-select"
 							value={values.type}
-							disabled={busy}
+							disabled={!online || busy}
 							onChange={(event) =>
 								change("type", event.target.value as SeriesInput["type"])
 							}
@@ -242,7 +245,7 @@ export function SeriesForm({
 							max={100}
 							step={0.5}
 							value={values.estimateMinutes ? values.estimateMinutes / 60 : ""}
-							disabled={busy}
+							disabled={!online || busy}
 							onChange={(event) =>
 								change(
 									"estimateMinutes",
@@ -259,7 +262,7 @@ export function SeriesForm({
 					aria-describedby={
 						fields.weekdays ? "series-weekdays-error" : undefined
 					}
-					disabled={busy}
+					disabled={!online || busy}
 				>
 					<legend>Weekdays</legend>
 					<div>
@@ -276,6 +279,8 @@ export function SeriesForm({
 												: values.weekdays.filter((value) => value !== day),
 										)
 									}
+									disabled={!online}
+									title={online ? undefined : offlineHint}
 								/>
 								{label}
 							</label>
@@ -300,7 +305,7 @@ export function SeriesForm({
 							max={60}
 							step={1}
 							value={values.leadDays}
-							disabled={busy}
+							disabled={!online || busy}
 							onChange={(event) =>
 								change(
 									"leadDays",
@@ -324,7 +329,7 @@ export function SeriesForm({
 							min={addDays(localDate(), 1)}
 							max={addDays(localDate(), 365)}
 							value={values.endDate}
-							disabled={busy}
+							disabled={!online || busy}
 							onChange={(event) => change("endDate", event.target.value)}
 						/>
 					)}
@@ -338,7 +343,7 @@ export function SeriesForm({
 						<Textarea
 							{...props}
 							value={values.notes}
-							disabled={busy}
+							disabled={!online || busy}
 							onChange={(event) => change("notes", event.target.value)}
 						/>
 					)}
@@ -350,9 +355,9 @@ export function SeriesForm({
 				</p>
 			)}
 			<div className="form-actions">
-				<Button type="submit" disabled={busy}>
+				<MutationButton type="submit" disabled={busy}>
 					{busy ? "Loading…" : "Preview"}
-				</Button>
+				</MutationButton>
 				<Button
 					type="button"
 					variant="ghost"

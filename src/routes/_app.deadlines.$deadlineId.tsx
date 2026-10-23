@@ -10,7 +10,7 @@ import {
 	type SeriesScope,
 } from "#/components/series/scope-dialog";
 import { SeriesScopeForm } from "#/components/series/series-scope-form";
-import { Button } from "#/components/ui/button";
+import { MutationButton } from "#/components/shared/mutation-button";
 import { deadlineQueryOptions } from "#/lib/deadlines-query";
 import { formatDate, formatHours } from "#/lib/format";
 import { refreshPlan } from "#/lib/plan-cache";
@@ -67,9 +67,9 @@ function DeadlineDetail() {
 			)}
 			{deadline.notes && <p className="deadline-notes">{deadline.notes}</p>}
 			{deadline.status === "active" && !showEdit && (
-				<Button ref={editButton} onClick={() => setEditing(true)}>
+				<MutationButton ref={editButton} onClick={() => setEditing(true)}>
 					Edit
-				</Button>
+				</MutationButton>
 			)}
 			{!showEdit && <DeadlineActions deadline={deadline} detail />}
 			{showEdit && deadline.seriesId && !editScope && (

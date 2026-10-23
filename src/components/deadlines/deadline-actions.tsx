@@ -6,9 +6,10 @@ import {
 	type SeriesScope,
 } from "#/components/series/scope-dialog";
 import { ConfirmDialog } from "#/components/shared/confirm-dialog";
-import { Button } from "#/components/ui/button";
+import { MutationButton } from "#/components/shared/mutation-button";
 import { deleteDeadline, markDeadlineDone } from "#/lib/deadlines-query";
 import { localDate } from "#/lib/format";
+import { useOnline } from "#/lib/offline";
 import { refreshPlan } from "#/lib/plan-cache";
 import { deleteSeriesFollowing } from "#/lib/series-scope-query";
 
@@ -26,6 +27,7 @@ export function DeadlineActions({
 	detail?: boolean;
 }) {
 	const client = useQueryClient();
+	const online = useOnline();
 	const navigate = useNavigate();
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
@@ -47,30 +49,34 @@ export function DeadlineActions({
 	return (
 		<div className="deadline-actions">
 			{deadline.status === "active" && (
-				<Button variant="outline" disabled={busy} onClick={markDone}>
+				<MutationButton variant="outline" disabled={busy} onClick={markDone}>
 					{busy ? "Saving…" : "Mark done"}
-				</Button>
+				</MutationButton>
 			)}
-			{deadline.status === "active" && deadline.dueDate < localDate() && (
-				<Link
-					to="/deadlines/$deadlineId"
-					params={{ deadlineId: deadline.id }}
-					search={{ edit: true, focusDue: true }}
-					className="back-link"
-				>
-					Extend due date
-				</Link>
-			)}
+			{deadline.status === "active" &&
+				deadline.dueDate < localDate() &&
+				(online ? (
+					<Link
+						to="/deadlines/$deadlineId"
+						params={{ deadlineId: deadline.id }}
+						search={{ edit: true, focusDue: true }}
+						className="back-link"
+					>
+						Extend due date
+					</Link>
+				) : (
+					<MutationButton variant="link">Extend due date</MutationButton>
+				))}
 			{deadline.seriesId && (
 				<>
-					<Button
+					<MutationButton
 						ref={deleteButton}
 						variant="ghost"
 						disabled={busy}
 						onClick={() => setScopeOpen(true)}
 					>
 						Delete
-					</Button>
+					</MutationButton>
 					<ScopeDialog
 						open={scopeOpen}
 						returnFocus={() => deleteButton.current}
@@ -101,9 +107,9 @@ export function DeadlineActions({
 				}
 				trigger={
 					deadline.seriesId ? null : (
-						<Button variant="ghost" disabled={busy}>
+						<MutationButton variant="ghost" disabled={busy}>
 							Delete
-						</Button>
+						</MutationButton>
 					)
 				}
 				onConfirm={async () => {

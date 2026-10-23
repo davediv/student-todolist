@@ -1,10 +1,12 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Dialog } from "radix-ui";
 import { useId, useState } from "react";
+import { MutationButton } from "#/components/shared/mutation-button";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { ApiError } from "#/lib/api-client";
 import { localDate } from "#/lib/format";
+import { useOnline } from "#/lib/offline";
 import { refreshPlan } from "#/lib/plan-cache";
 import { createTodo, type Todo, updateTodo } from "#/lib/todos-query";
 
@@ -16,6 +18,7 @@ export function TodoSheet({
 	onClose: () => void;
 }) {
 	const client = useQueryClient();
+	const online = useOnline();
 	const id = useId();
 	const [title, setTitle] = useState(todo?.title ?? "");
 	const [date, setDate] = useState(todo?.date ?? "");
@@ -75,7 +78,7 @@ export function TodoSheet({
 								<Input
 									id={`${id}-title`}
 									value={title}
-									disabled={busy}
+									disabled={!online || busy}
 									onChange={(event) => setTitle(event.target.value)}
 									aria-invalid={Boolean(errors.title)}
 									aria-describedby={
@@ -95,7 +98,7 @@ export function TodoSheet({
 									type="date"
 									min={localDate()}
 									value={date}
-									disabled={busy}
+									disabled={!online || busy}
 									onChange={(event) => setDate(event.target.value)}
 									aria-invalid={Boolean(errors.date)}
 									aria-describedby={
@@ -123,9 +126,9 @@ export function TodoSheet({
 							>
 								Cancel
 							</Button>
-							<Button type="submit" disabled={busy}>
+							<MutationButton type="submit" disabled={busy}>
 								{busy ? "Saving…" : "Save"}
-							</Button>
+							</MutationButton>
 						</div>
 					</form>
 				</Dialog.Content>

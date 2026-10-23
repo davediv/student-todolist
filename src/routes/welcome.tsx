@@ -6,15 +6,25 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { LimitsEditor } from "#/components/limits/limits-editor";
+import { OfflineBanner } from "#/components/shared/offline-banner";
 import { defaultLimits } from "#/lib/limits";
 import { limitsQueryOptions, saveLimits } from "#/lib/limits-query";
+import { isOnline } from "#/lib/offline";
 import { sessionQueryOptions } from "#/lib/session";
 export const Route = createFileRoute("/welcome")({
 	ssr: false,
 	beforeLoad: async ({ context }) => {
-		if (!(await context.queryClient.fetchQuery(sessionQueryOptions)))
+		if (
+			!(isOnline()
+				? await context.queryClient.fetchQuery(sessionQueryOptions)
+				: context.queryClient.getQueryData(sessionQueryOptions.queryKey))
+		)
 			throw redirect({ to: "/sign-in" });
-		if (await context.queryClient.fetchQuery(limitsQueryOptions))
+		if (
+			isOnline()
+				? await context.queryClient.fetchQuery(limitsQueryOptions)
+				: context.queryClient.getQueryData(limitsQueryOptions.queryKey)
+		)
 			throw redirect({ to: "/" });
 	},
 	component: Welcome,
@@ -25,6 +35,7 @@ function Welcome() {
 	const navigate = useNavigate();
 	return (
 		<main className="welcome-page">
+			<OfflineBanner />
 			<p className="eyebrow">A rhythm that works for you</p>
 			<h1>Welcome to Student Todo</h1>
 			<p className="page-description">

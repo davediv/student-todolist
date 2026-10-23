@@ -5,8 +5,10 @@ import {
 	redirect,
 } from "@tanstack/react-router";
 import { CalendarDays, CheckCheck, ListTodo, Settings } from "lucide-react";
+import { OfflineBanner } from "#/components/shared/offline-banner";
 import { ToastProvider } from "#/components/shared/toast";
 import { limitsQueryOptions } from "#/lib/limits-query";
+import { isOnline } from "#/lib/offline";
 import { sessionQueryOptions } from "#/lib/session";
 
 const destinations = [
@@ -19,9 +21,13 @@ const destinations = [
 export const Route = createFileRoute("/_app")({
 	ssr: false,
 	beforeLoad: async ({ context }) => {
-		const user = await context.queryClient.fetchQuery(sessionQueryOptions);
+		const user = isOnline()
+			? await context.queryClient.fetchQuery(sessionQueryOptions)
+			: context.queryClient.getQueryData(sessionQueryOptions.queryKey);
 		if (!user) throw redirect({ to: "/sign-in" });
-		const limits = await context.queryClient.fetchQuery(limitsQueryOptions);
+		const limits = isOnline()
+			? await context.queryClient.fetchQuery(limitsQueryOptions)
+			: context.queryClient.getQueryData(limitsQueryOptions.queryKey);
 		if (!limits) throw redirect({ to: "/welcome" });
 		return { user, limits };
 	},
@@ -54,6 +60,7 @@ function AppShell() {
 					))}
 				</nav>
 				<main id="main" tabIndex={-1}>
+					<OfflineBanner />
 					<Outlet />
 				</main>
 			</div>

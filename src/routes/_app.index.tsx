@@ -6,15 +6,18 @@ import { useState } from "react";
 import { DayView } from "#/components/plan/day-view";
 import { OverdueStrip } from "#/components/plan/overdue-strip";
 import { EmptyState } from "#/components/shared/empty-state";
+import { MutationButton } from "#/components/shared/mutation-button";
 import { SkeletonRows } from "#/components/shared/skeleton";
 import { TodoRow } from "#/components/todos/todo-row";
 import { TodoSheet } from "#/components/todos/todo-sheet";
 import { Button } from "#/components/ui/button";
 import { daysQueryOptions } from "#/lib/days-query";
 import { formatDate, localDate } from "#/lib/format";
+import { useOnline } from "#/lib/offline";
 export const Route = createFileRoute("/_app/")({ component: Today });
 function Today() {
 	const today = localDate();
+	const online = useOnline();
 	const query = useQuery(daysQueryOptions(today, today));
 	const day = query.data?.days[0];
 	const anytime = query.data?.anytime ?? [];
@@ -36,10 +39,10 @@ function Today() {
 					</p>
 				</div>
 				<DropdownMenu.Root>
-					<DropdownMenu.Trigger asChild>
-						<Button>
+					<DropdownMenu.Trigger asChild disabled={!online}>
+						<MutationButton>
 							<Plus size={18} aria-hidden="true" /> Add
-						</Button>
+						</MutationButton>
 					</DropdownMenu.Trigger>
 					<DropdownMenu.Portal>
 						<DropdownMenu.Content
@@ -47,7 +50,11 @@ function Today() {
 							align="end"
 							sideOffset={8}
 						>
-							<DropdownMenu.Item asChild className="menu-item">
+							<DropdownMenu.Item
+								asChild
+								className="menu-item"
+								disabled={!online}
+							>
 								<Link to="/deadlines" search={{ add: true }}>
 									Deadline
 								</Link>
@@ -55,10 +62,15 @@ function Today() {
 							<DropdownMenu.Item
 								className="menu-item"
 								onSelect={() => setAddingTodo(true)}
+								disabled={!online}
 							>
 								Todo
 							</DropdownMenu.Item>
-							<DropdownMenu.Item asChild className="menu-item">
+							<DropdownMenu.Item
+								asChild
+								className="menu-item"
+								disabled={!online}
+							>
 								<Link to="/deadlines" search={{ addSeries: true }}>
 									Recurring deadline
 								</Link>
@@ -68,7 +80,12 @@ function Today() {
 				</DropdownMenu.Root>
 			</div>
 			<OverdueStrip />
-			{query.isPending ? (
+			{query.isPending && !online ? (
+				<EmptyState
+					title="No saved plan for today"
+					description="Connect to load your plan on this device."
+				/>
+			) : query.isPending ? (
 				<SkeletonRows />
 			) : query.isError ? (
 				<div className="plan-error" role="alert">

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { MutationButton } from "#/components/shared/mutation-button";
 import { SkeletonRows } from "#/components/shared/skeleton";
 import { Button } from "#/components/ui/button";
 import { ApiError } from "#/lib/api-client";
@@ -116,9 +117,9 @@ export function ReplanAllPreview({
 			)}
 			<div className="form-actions">
 				{preview ? (
-					<Button disabled={saving} onClick={save}>
+					<MutationButton disabled={saving} onClick={save}>
 						{saving ? "Saving…" : "Save"}
-					</Button>
+					</MutationButton>
 				) : error ? (
 					<Button onClick={() => setAttempt((value) => value + 1)}>
 						Retry

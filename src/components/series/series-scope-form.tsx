@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { FormField } from "#/components/shared/form-field";
+import { MutationButton } from "#/components/shared/mutation-button";
 import { SkeletonRows } from "#/components/shared/skeleton";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
@@ -8,6 +9,7 @@ import { Textarea } from "#/components/ui/textarea";
 import { ApiError } from "#/lib/api-client";
 import { type DeadlineInput, deadlineTypes } from "#/lib/deadlines";
 import { formatDate, formatHours, localDate } from "#/lib/format";
+import { useOnline } from "#/lib/offline";
 import { addDays } from "#/lib/planner";
 import { type SeriesScopeInput, seriesScopeSchema } from "#/lib/series-scope";
 import {
@@ -87,6 +89,7 @@ function ScopeFields({
 	onSaved,
 	onCancel,
 }: Props & { initial: ScopeValues }) {
+	const online = useOnline();
 	const [values, setValues] = useState(initial);
 	const [baseline] = useState(initial);
 	const titleInput = useRef<HTMLInputElement>(null);
@@ -256,9 +259,9 @@ function ScopeFields({
 					</p>
 				)}
 				<div className="form-actions">
-					<Button disabled={busy} onClick={save}>
+					<MutationButton disabled={busy} onClick={save}>
 						{busy ? "Saving…" : "Save"}
-					</Button>
+					</MutationButton>
 					<Button
 						variant="outline"
 						disabled={busy}
@@ -295,7 +298,7 @@ function ScopeFields({
 							ref={titleInput}
 							{...props}
 							value={values.title}
-							disabled={busy}
+							disabled={!online || busy}
 							onChange={(event) => change("title", event.target.value)}
 						/>
 					)}
@@ -306,7 +309,7 @@ function ScopeFields({
 							{...props}
 							className="native-select"
 							value={values.type}
-							disabled={busy}
+							disabled={!online || busy}
 							onChange={(event) =>
 								change("type", event.target.value as ScopeValues["type"])
 							}
@@ -332,7 +335,7 @@ function ScopeFields({
 							max={100}
 							step={0.5}
 							value={values.estimateMinutes / 60 || ""}
-							disabled={busy}
+							disabled={!online || busy}
 							onChange={(event) =>
 								change(
 									"estimateMinutes",
@@ -356,7 +359,7 @@ function ScopeFields({
 							min={1}
 							max={60}
 							value={values.leadDays}
-							disabled={busy}
+							disabled={!online || busy}
 							onChange={(event) =>
 								change(
 									"leadDays",
@@ -379,7 +382,7 @@ function ScopeFields({
 							type="date"
 							max={addDays(localDate(), 365)}
 							value={values.endDate}
-							disabled={busy}
+							disabled={!online || busy}
 							onChange={(event) => change("endDate", event.target.value)}
 						/>
 					)}
@@ -393,7 +396,7 @@ function ScopeFields({
 						<Textarea
 							{...props}
 							value={values.notes}
-							disabled={busy}
+							disabled={!online || busy}
 							onChange={(event) => change("notes", event.target.value)}
 						/>
 					)}
@@ -405,9 +408,9 @@ function ScopeFields({
 				</p>
 			)}
 			<div className="form-actions">
-				<Button type="submit" disabled={busy}>
+				<MutationButton type="submit" disabled={busy}>
 					{busy ? "Loading…" : "Preview"}
-				</Button>
+				</MutationButton>
 				<Button
 					type="button"
 					variant="ghost"

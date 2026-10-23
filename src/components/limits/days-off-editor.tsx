@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { FormField } from "#/components/shared/form-field";
+import { MutationButton } from "#/components/shared/mutation-button";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { ApiError } from "#/lib/api-client";
@@ -11,10 +12,12 @@ import {
 	removeDayOff,
 } from "#/lib/days-off-query";
 import { formatDate, formatHours, localDate } from "#/lib/format";
+import { useOnline } from "#/lib/offline";
 import { refreshPlan } from "#/lib/plan-cache";
 
 export function DaysOffEditor() {
 	const client = useQueryClient();
+	const online = useOnline();
 	const query = useQuery(daysOffQueryOptions());
 	const [date, setDate] = useState("");
 	const [hours, setHours] = useState("0");
@@ -93,7 +96,7 @@ export function DaysOffEditor() {
 							min={localDate()}
 							value={date}
 							onChange={(event) => setDate(event.target.value)}
-							disabled={busy !== null}
+							disabled={!online || busy !== null}
 						/>
 					)}
 				</FormField>
@@ -115,13 +118,13 @@ export function DaysOffEditor() {
 							step={0.5}
 							value={hours}
 							onChange={(event) => setHours(event.target.value)}
-							disabled={busy !== null}
+							disabled={!online || busy !== null}
 						/>
 					)}
 				</FormField>
-				<Button type="submit" disabled={busy !== null}>
+				<MutationButton type="submit" disabled={busy !== null}>
 					{busy === "add" ? "Adding…" : "Add day off"}
-				</Button>
+				</MutationButton>
 			</form>
 			{error && (
 				<p role="alert" className="field-error">
@@ -151,14 +154,14 @@ export function DaysOffEditor() {
 								</time>{" "}
 								· {formatHours(row.limitMinutes)}
 							</span>
-							<Button
+							<MutationButton
 								variant="ghost"
 								disabled={busy !== null}
 								onClick={() => void remove(row.id)}
 								aria-label={`Remove day off ${formatDate(row.date)}`}
 							>
 								{busy === row.id ? "Removing…" : "Remove"}
-							</Button>
+							</MutationButton>
 						</li>
 					))}
 				</ul>

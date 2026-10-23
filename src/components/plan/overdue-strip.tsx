@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { MutationButton } from "#/components/shared/mutation-button";
 import { TodoRow } from "#/components/todos/todo-row";
 import { Button } from "#/components/ui/button";
 import { formatHours } from "#/lib/format";
@@ -69,9 +70,12 @@ export function OverdueStrip() {
 								))}
 							</ul>
 						</details>
-						<Button disabled={busy || !sessions.length} onClick={replan}>
+						<MutationButton
+							disabled={busy || !sessions.length}
+							onClick={replan}
+						>
 							{busy ? "Re-planning…" : "Re-plan"}
-						</Button>
+						</MutationButton>
 					</div>
 				</section>
 			)}
@@ -106,9 +110,9 @@ export function OverdueStrip() {
 						</div>
 					))}
 					{result.plans.some((plan) => plan.shortfallMinutes > 0) && (
-						<Button variant="outline" onClick={() => setShowAll(true)}>
+						<MutationButton variant="outline" onClick={() => setShowAll(true)}>
 							Re-plan all by due date
-						</Button>
+						</MutationButton>
 					)}
 				</section>
 			)}

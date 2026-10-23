@@ -1,6 +1,12 @@
 import { hc } from "hono/client";
 import type { AppType } from "#/server/api";
 import { localDate } from "./format";
+import { isOnline, offlineHint } from "./offline";
+
+let unauthorizedHandler: (() => void) | undefined;
+export function onUnauthorized(handler: () => void) {
+	unauthorizedHandler = handler;
+}
 export class ApiError extends Error {
 	constructor(
 		public code: string,
@@ -17,6 +23,12 @@ export function createApiClient(
 ) {
 	return hc<AppType>("/", {
 		fetch: async (input: RequestInfo | URL, init?: RequestInit) => {
+			const method = (
+				init?.method ?? (input instanceof Request ? input.method : "GET")
+			).toUpperCase();
+			if (!["GET", "HEAD", "OPTIONS"].includes(method) && !isOnline()) {
+				throw new ApiError("offline", offlineHint, 0);
+			}
 			const headers = new Headers(init?.headers);
 			headers.set("X-Local-Date", localDate());
 			const response = await fetcher(input, {
@@ -25,6 +37,7 @@ export function createApiClient(
 				credentials: "include",
 			});
 			if (!response.ok) {
+				if (response.status === 401) unauthorizedHandler?.();
 				const body = (await response.json().catch(() => null)) as {
 					error?: {
 						code: string;

@@ -2,10 +2,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { MoreHorizontal } from "lucide-react";
 import { Dialog, DropdownMenu } from "radix-ui";
 import { useId, useRef, useState } from "react";
+import { MutationButton } from "#/components/shared/mutation-button";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { apiClient } from "#/lib/api-client";
 import { localDate } from "#/lib/format";
+import { useOnline } from "#/lib/offline";
 import { refreshPlan } from "#/lib/plan-cache";
 import { addDays } from "#/lib/planner";
 
@@ -26,6 +28,7 @@ export function SessionMenu({
 	disabled?: boolean;
 }) {
 	const client = useQueryClient();
+	const online = useOnline();
 	const [mode, setMode] = useState<"move" | "duration" | null>(null);
 	const [date, setDate] = useState(session.date);
 	const [hours, setHours] = useState(String(session.minutes / 60));
@@ -57,8 +60,11 @@ export function SessionMenu({
 	return (
 		<>
 			<DropdownMenu.Root>
-				<DropdownMenu.Trigger asChild>
-					<Button
+				<DropdownMenu.Trigger
+					asChild
+					disabled={!online || disabled || save.isPending}
+				>
+					<MutationButton
 						ref={trigger}
 						variant="ghost"
 						size="icon"
@@ -66,7 +72,7 @@ export function SessionMenu({
 						aria-label={`Session actions for ${session.title ?? "study session"}`}
 					>
 						<MoreHorizontal size={18} aria-hidden="true" />
-					</Button>
+					</MutationButton>
 				</DropdownMenu.Trigger>
 				<DropdownMenu.Portal>
 					<DropdownMenu.Content
@@ -76,7 +82,7 @@ export function SessionMenu({
 					>
 						<DropdownMenu.Item
 							className="menu-item"
-							disabled={today > lastDay}
+							disabled={!online || today > lastDay}
 							onSelect={() => open("move")}
 						>
 							Move to day
@@ -84,6 +90,7 @@ export function SessionMenu({
 						<DropdownMenu.Item
 							className="menu-item"
 							onSelect={() => open("duration")}
+							disabled={!online}
 						>
 							Change duration
 						</DropdownMenu.Item>
@@ -93,6 +100,7 @@ export function SessionMenu({
 								save.reset();
 								save.mutate("delete");
 							}}
+							disabled={!online}
 						>
 							Delete
 						</DropdownMenu.Item>
@@ -147,7 +155,7 @@ export function SessionMenu({
 										required
 										value={date}
 										onChange={(event) => setDate(event.target.value)}
-										disabled={save.isPending}
+										disabled={!online || save.isPending}
 									/>
 								) : (
 									<Input
@@ -159,7 +167,7 @@ export function SessionMenu({
 										required
 										value={hours}
 										onChange={(event) => setHours(event.target.value)}
-										disabled={save.isPending}
+										disabled={!online || save.isPending}
 									/>
 								)}
 							</div>
@@ -177,9 +185,9 @@ export function SessionMenu({
 								>
 									Cancel
 								</Button>
-								<Button type="submit" disabled={save.isPending}>
+								<MutationButton type="submit" disabled={save.isPending}>
 									{save.isPending ? "Saving…" : "Save"}
-								</Button>
+								</MutationButton>
 							</div>
 						</form>
 					</Dialog.Content>

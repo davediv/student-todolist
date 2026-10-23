@@ -2,13 +2,15 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { ConfirmDialog } from "#/components/shared/confirm-dialog";
-import { Button } from "#/components/ui/button";
+import { MutationButton } from "#/components/shared/mutation-button";
+import { offlineHint, useOnline } from "#/lib/offline";
 import { refreshPlan } from "#/lib/plan-cache";
 import { deleteTodo, type Todo, updateTodo } from "#/lib/todos-query";
 import { TodoSheet } from "./todo-sheet";
 
 export function TodoRow({ todo }: { todo: Todo }) {
 	const client = useQueryClient();
+	const online = useOnline();
 	const [editing, setEditing] = useState(false);
 	const tick = useMutation({
 		mutationFn: (done: boolean) => updateTodo(todo.id, { done }),
@@ -20,9 +22,10 @@ export function TodoRow({ todo }: { todo: Todo }) {
 				<input
 					type="checkbox"
 					checked={todo.done}
-					disabled={tick.isPending}
+					disabled={!online || tick.isPending}
 					aria-label={todo.title}
 					onChange={(event) => tick.mutate(event.target.checked)}
+					title={online ? undefined : offlineHint}
 				/>
 				<span
 					className="session-copy session-title"
@@ -30,7 +33,7 @@ export function TodoRow({ todo }: { todo: Todo }) {
 				>
 					{todo.title}
 				</span>
-				<Button
+				<MutationButton
 					variant="ghost"
 					size="icon"
 					aria-label={`Edit ${todo.title}`}
@@ -38,17 +41,17 @@ export function TodoRow({ todo }: { todo: Todo }) {
 					onClick={() => setEditing(true)}
 				>
 					<Pencil size={17} aria-hidden="true" />
-				</Button>
+				</MutationButton>
 				<ConfirmDialog
 					trigger={
-						<Button
+						<MutationButton
 							variant="ghost"
 							size="icon"
 							disabled={tick.isPending}
 							aria-label={`Delete ${todo.title}`}
 						>
 							<Trash2 size={17} aria-hidden="true" />
-						</Button>
+						</MutationButton>
 					}
 					title="Delete todo?"
 					description={`Delete “${todo.title}”?`}

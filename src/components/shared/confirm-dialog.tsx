@@ -1,5 +1,6 @@
 import { Dialog } from "radix-ui";
 import { type ReactNode, useState } from "react";
+import { MutationButton } from "#/components/shared/mutation-button";
 import { Button } from "#/components/ui/button";
 export function ConfirmDialog({
 	trigger,
@@ -69,9 +70,13 @@ export function ConfirmDialog({
 								Cancel
 							</Button>
 						</Dialog.Close>
-						<Button variant="destructive" disabled={busy} onClick={confirm}>
+						<MutationButton
+							variant="destructive"
+							disabled={busy}
+							onClick={confirm}
+						>
 							{busy ? "Working…" : "Confirm"}
-						</Button>
+						</MutationButton>
 					</div>
 				</Dialog.Content>
 			</Dialog.Portal>

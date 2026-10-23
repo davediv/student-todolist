@@ -1,5 +1,6 @@
 import { Dialog } from "radix-ui";
 import { useEffect, useRef } from "react";
+import { MutationButton } from "#/components/shared/mutation-button";
 import { Button } from "#/components/ui/button";
 
 export type SeriesScope = "this" | "following";
@@ -46,10 +47,15 @@ export function ScopeDialog({
 						unchanged when you choose this and following.
 					</Dialog.Description>
 					<div className="form-actions">
-						<Button onClick={() => select("this")}>This occurrence</Button>
-						<Button variant="outline" onClick={() => select("following")}>
+						<MutationButton onClick={() => select("this")}>
+							This occurrence
+						</MutationButton>
+						<MutationButton
+							variant="outline"
+							onClick={() => select("following")}
+						>
 							This and following
-						</Button>
+						</MutationButton>
 						<Dialog.Close asChild>
 							<Button variant="ghost">Cancel</Button>
 						</Dialog.Close>

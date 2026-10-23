@@ -8,6 +8,7 @@ import {
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { useEffect } from "react";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
+import { waitForOfflineCache } from "../lib/offline-cache";
 import { registerServiceWorker } from "../lib/register-service-worker";
 import appCss from "../styles.css?url";
 
@@ -16,6 +17,7 @@ interface MyRouterContext {
 }
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
+	beforeLoad: ({ context }) => waitForOfflineCache(context.queryClient),
 	head: () => ({
 		meta: [
 			{

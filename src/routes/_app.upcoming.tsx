@@ -7,11 +7,13 @@ import { WeeklyCard } from "#/components/stats/weekly-card";
 import { Button } from "#/components/ui/button";
 import { daysQueryOptions } from "#/lib/days-query";
 import { formatDate, localDate } from "#/lib/format";
+import { useOnline } from "#/lib/offline";
 import { addDays } from "#/lib/planner";
 
 export const Route = createFileRoute("/_app/upcoming")({ component: Upcoming });
 
 function Upcoming() {
+	const online = useOnline();
 	const today = localDate();
 	const query = useQuery(
 		daysQueryOptions(addDays(today, 1), addDays(today, 14)),
@@ -25,7 +27,12 @@ function Upcoming() {
 				A little breathing room for the next two weeks.
 			</p>
 			<WeeklyCard today={today} />
-			{query.isPending ? (
+			{query.isPending && !online ? (
+				<EmptyState
+					title="No saved upcoming plan"
+					description="Connect to load your plan on this device."
+				/>
+			) : query.isPending ? (
 				<SkeletonRows />
 			) : query.isError ? (
 				<div className="plan-error" role="alert">

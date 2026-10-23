@@ -10,6 +10,7 @@ import {
 import { apiClient } from "#/lib/api-client";
 import type { DaySession } from "#/lib/days-query";
 import { formatDate, formatHours } from "#/lib/format";
+import { offlineHint, useOnline } from "#/lib/offline";
 import { refreshPlan } from "#/lib/plan-cache";
 import { SessionMenu } from "./session-menu";
 
@@ -22,6 +23,7 @@ const icons = {
 };
 export function SessionRow({ session }: { session: DaySession }) {
 	const queryClient = useQueryClient();
+	const online = useOnline();
 	const tick = useMutation({
 		mutationFn: async (ticked: boolean) => {
 			await apiClient.api.sessions[":id"].$patch({
@@ -38,9 +40,10 @@ export function SessionRow({ session }: { session: DaySession }) {
 				<input
 					type="checkbox"
 					checked={session.ticked}
-					disabled={tick.isPending}
+					disabled={!online || tick.isPending}
 					aria-label={`${session.title}, ${formatHours(session.minutes)}`}
 					onChange={(event) => tick.mutate(event.target.checked)}
+					title={online ? undefined : offlineHint}
 				/>
 				<Icon size={20} aria-hidden="true" />
 				<div className="session-copy">

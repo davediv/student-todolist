@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { ReplanAllPreview } from "#/components/plan/replan-all-preview";
 import { FormField } from "#/components/shared/form-field";
+import { MutationButton } from "#/components/shared/mutation-button";
 import { SkeletonRows } from "#/components/shared/skeleton";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
@@ -16,6 +17,7 @@ import {
 } from "#/lib/deadlines";
 import { createDeadline, previewDeadline } from "#/lib/deadlines-query";
 import { formatDate, formatHours, localDate } from "#/lib/format";
+import { useOnline } from "#/lib/offline";
 import { addDays } from "#/lib/planner";
 
 function messages(errors: unknown[]) {
@@ -46,6 +48,7 @@ export function DeadlineForm({
 		if (focusDue) document.getElementById("deadline-due")?.focus();
 	}, [focusDue]);
 	const manualStart = useRef(Boolean(initial));
+	const online = useOnline();
 	const [preview, setPreview] = useState<
 		| (Awaited<ReturnType<typeof previewDeadline>> & {
 				keptSessions?: { id: string; date: string; minutes: number }[];
@@ -176,13 +179,13 @@ export function DeadlineForm({
 					</output>
 				)}
 				{preview.shortfallMinutes > 0 && (
-					<Button
+					<MutationButton
 						variant="outline"
 						disabled={saving}
 						onClick={() => setReplanAll(true)}
 					>
 						Re-plan all by due date
-					</Button>
+					</MutationButton>
 				)}
 				{preview.keptSessions && preview.keptSessions.length > 0 && (
 					<>
@@ -233,9 +236,9 @@ export function DeadlineForm({
 					</p>
 				)}
 				<div className="form-actions">
-					<Button disabled={saving} onClick={save}>
+					<MutationButton disabled={saving} onClick={save}>
 						{saving ? "Saving…" : "Save"}
-					</Button>
+					</MutationButton>
 					<Button
 						variant="outline"
 						disabled={saving}
@@ -275,6 +278,7 @@ export function DeadlineForm({
 									value={field.state.value}
 									onBlur={field.handleBlur}
 									onChange={(event) => field.handleChange(event.target.value)}
+									disabled={!online}
 								/>
 							)}
 						</FormField>
@@ -298,6 +302,7 @@ export function DeadlineForm({
 											event.target.value as DeadlineInput["type"],
 										)
 									}
+									disabled={!online}
 								>
 									{deadlineTypes.map((type) => (
 										<option key={type} value={type}>
@@ -336,6 +341,7 @@ export function DeadlineForm({
 											}
 										}
 									}}
+									disabled={!online}
 								/>
 							)}
 						</FormField>
@@ -358,6 +364,7 @@ export function DeadlineForm({
 										manualStart.current = true;
 										field.handleChange(event.target.value);
 									}}
+									disabled={!online}
 								/>
 							)}
 						</FormField>
@@ -386,6 +393,7 @@ export function DeadlineForm({
 												: 0,
 										)
 									}
+									disabled={!online}
 								/>
 							)}
 						</FormField>
@@ -404,6 +412,7 @@ export function DeadlineForm({
 									value={field.state.value}
 									onBlur={field.handleBlur}
 									onChange={(event) => field.handleChange(event.target.value)}
+									disabled={!online}
 								/>
 							)}
 						</FormField>
@@ -418,9 +427,9 @@ export function DeadlineForm({
 			<form.Subscribe selector={(state) => state.isSubmitting}>
 				{(busy) => (
 					<div className="form-actions">
-						<Button type="submit" disabled={busy}>
+						<MutationButton type="submit" disabled={busy}>
 							{busy ? "Saving…" : deadlineId ? "Save" : "Preview plan"}
-						</Button>
+						</MutationButton>
 						<Button
 							type="button"
 							variant="ghost"

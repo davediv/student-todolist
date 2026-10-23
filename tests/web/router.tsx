@@ -146,6 +146,14 @@ export async function renderRoute(
 		});
 		queryClient.setQueryDefaults(["days"], { staleTime: Infinity });
 	}
+	return renderQueryClientRoute(queryClient, path);
+}
+
+/** Render a restored cache as-is, without inserting test fixture queries. */
+export async function renderQueryClientRoute(
+	queryClient: QueryClient,
+	path = "/",
+) {
 	const router = createRouter({
 		routeTree,
 		history: createMemoryHistory({ initialEntries: [path] }),

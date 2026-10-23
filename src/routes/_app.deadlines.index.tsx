@@ -7,7 +7,7 @@ import { DeadlineForm } from "#/components/deadlines/deadline-form";
 import { TypeIcon } from "#/components/deadlines/type-icon";
 import { SeriesForm } from "#/components/series/series-form";
 import { EmptyState } from "#/components/shared/empty-state";
-import { Button } from "#/components/ui/button";
+import { MutationButton } from "#/components/shared/mutation-button";
 import { deadlinesQueryOptions } from "#/lib/deadlines-query";
 import { formatDate, formatHours } from "#/lib/format";
 import { refreshPlan } from "#/lib/plan-cache";
@@ -75,7 +75,9 @@ function Deadlines() {
 			<div className="page-heading">
 				<h2>Deadlines</h2>
 				{!adding && !addingSeries && (
-					<Button onClick={() => setAdding(true)}>+ Deadline</Button>
+					<MutationButton onClick={() => setAdding(true)}>
+						+ Deadline
+					</MutationButton>
 				)}
 			</div>
 			<p className="page-description">
