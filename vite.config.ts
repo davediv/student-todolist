@@ -8,6 +8,16 @@ import { pwa } from "./build/pwa.ts";
 
 const config = defineConfig({
 	resolve: { tsconfigPaths: true },
+	server: {
+		watch: {
+			ignored: [
+				"**/playwright-report/**",
+				"**/test-results/**",
+				"**/blob-report/**",
+				"**/.wrangler/browser-tests/**",
+			],
+		},
+	},
 	plugins: [
 		devtools(),
 		cloudflare({ viteEnvironment: { name: "ssr" } }),
