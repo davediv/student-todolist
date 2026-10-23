@@ -127,7 +127,7 @@ Measured locally on 2026-10-23, macOS arm64, Node v24.21.0:
 | --- | --- | --- | --- |
 | `POST /api/deadlines/preview`, 50 active deadlines | 8.8 ms | 10.8 ms | p95 <300 ms |
 | `POST /api/replan/all/preview`, 50 active deadlines | 10.0 ms | 11.4 ms | p95 <300 ms |
-| Today list visible, cold mobile load | 1,550.0 ms | — | median <2,000 ms |
+| Today list visible, cold mobile load | 1,568.2 ms | — | median <2,000 ms |
 
 These are local built-app measurements, not production latency or a Google OAuth benchmark. Today starts fetching its plan in the route loader while its UI code loads.
 

@@ -163,6 +163,82 @@ it("requires a live session and does not accept a target user id", async () => {
 	expect(await snapshot(own)).toEqual(before);
 });
 
+it("removes owned OAuth linking state while preserving foreign, malformed and unrelated verification values", async () => {
+	const own = await fixture("student@example.com");
+	const friend = await fixture("friend@example.com");
+	const db = getDb(env);
+	for (const student of [own, friend]) {
+		const response = await apiApp.request(
+			"/api/auth/link-social",
+			{
+				method: "POST",
+				headers: {
+					...student.headers,
+					origin: env.BETTER_AUTH_URL,
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					provider: "google",
+					callbackURL: env.BETTER_AUTH_URL,
+					disableRedirect: true,
+				}),
+			},
+			env,
+		);
+		expect(response.status).toBe(200);
+		expect(await response.json()).toMatchObject({ redirect: false });
+	}
+	const state = await db.select().from(verification);
+	const ownState = state.find((row) =>
+		row.value.includes(`"userId":"${own.id}"`),
+	);
+	const friendState = state.find((row) =>
+		row.value.includes(`"userId":"${friend.id}"`),
+	);
+	for (const row of [ownState, friendState]) {
+		expect(row?.identifier).toMatch(/^auth-state:/);
+		expect([own.id, own.email, friend.id, friend.email]).not.toContain(
+			row?.identifier,
+		);
+	}
+	const protectedValues = [
+		{
+			id: crypto.randomUUID(),
+			identifier: `auth-state:${crypto.randomUUID()}`,
+			value: `{"link":{"userId":"${own.id}"`,
+		},
+		{
+			id: crypto.randomUUID(),
+			identifier: `auth-state:${crypto.randomUUID()}`,
+			value: JSON.stringify({ other: { userId: friend.id } }),
+		},
+		{
+			id: crypto.randomUUID(),
+			identifier: `unrelated:${crypto.randomUUID()}`,
+			value: JSON.stringify({ link: { userId: own.id } }),
+		},
+	];
+	await db.insert(verification).values(
+		protectedValues.map((row) => ({
+			...row,
+			expiresAt: new Date(Date.now() + 60000),
+		})),
+	);
+	const before = await db.select().from(verification);
+	const response = await apiApp.request(
+		"/api/account",
+		{ method: "DELETE", headers: own.headers },
+		env,
+	);
+	expect(response.status).toBe(204);
+	const after = await db.select().from(verification);
+	expect(after).not.toContainEqual(ownState);
+	expect(after).toContainEqual(friendState);
+	for (const row of protectedValues)
+		expect(after).toContainEqual(before.find((saved) => saved.id === row.id));
+	expect(after).toHaveLength(before.length - 2);
+});
+
 it("rolls back deletion atomically and retains the session if a database write fails", async () => {
 	const own = await fixture("student@example.com");
 	const before = await snapshot(own);

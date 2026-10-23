@@ -1,4 +1,8 @@
-import { onlineManager, type QueryClient } from "@tanstack/react-query";
+import {
+	onlineManager,
+	type QueryClient,
+	type QueryKey,
+} from "@tanstack/react-query";
 import {
 	type PersistedClient,
 	type Persister,
@@ -22,9 +26,33 @@ const planKeys = new Set([
 	"series",
 ]);
 const ready = new WeakMap<QueryClient, Promise<void>>();
+const retryRestore = new WeakSet<QueryClient>();
 
 export function waitForOfflineCache(client: QueryClient) {
-	return ready.get(client) ?? Promise.resolve();
+	return (
+		ready.get(client) ??
+		(retryRestore.has(client) ? prepareOfflineCache(client) : Promise.resolve())
+	);
+}
+
+/** Read a successful saved snapshot without creating a misleading current-date key. */
+export function savedQuery<T>(
+	client: QueryClient,
+	prefix: QueryKey,
+	accept: (data: T, key: QueryKey) => boolean = () => true,
+) {
+	const queries = client
+		.getQueryCache()
+		.findAll({ queryKey: prefix })
+		.filter(
+			(query) =>
+				query.state.data !== undefined &&
+				accept(query.state.data as T, query.queryKey),
+		)
+		.sort(
+			(left, right) => right.state.dataUpdatedAt - left.state.dataUpdatedAt,
+		);
+	return queries[0]?.state.data as T | undefined;
 }
 
 function removeStoredPlan() {
@@ -131,11 +159,17 @@ export function prepareOfflineCache(client: QueryClient) {
 			dehydrateOptions: {
 				shouldDehydrateMutation: () => false,
 				shouldDehydrateQuery: (query) =>
-					query.state.status === "success" &&
+					query.state.data !== undefined &&
 					planKeys.has(String(query.queryKey[0])),
 			},
 		});
-	})();
+		retryRestore.delete(client);
+	})().catch((error) => {
+		// A transient startup failure must be retryable on reconnect or Retry.
+		ready.delete(client);
+		retryRestore.add(client);
+		throw error;
+	});
 	ready.set(client, restore);
 	return restore;
 }

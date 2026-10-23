@@ -14,6 +14,7 @@ import {
 	reconcileSession,
 	waitForOfflineCache,
 } from "../../src/lib/offline-cache";
+import { listenForPlanRefresh } from "../../src/lib/plan-refresh";
 import { addDays } from "../../src/lib/planner";
 import { recentWeeks } from "../../src/lib/week";
 import { renderQueryClientRoute, renderRoute, student } from "./router";
@@ -24,6 +25,7 @@ vi.mock("../../src/lib/auth-client", () => ({
 
 const today = "2026-10-26";
 const clients: QueryClient[] = [];
+const subscriptions: (() => void)[] = [];
 function online(value: boolean) {
 	Object.defineProperty(navigator, "onLine", { configurable: true, value });
 	onlineManager.setOnline(value);
@@ -31,7 +33,13 @@ function online(value: boolean) {
 }
 function client() {
 	const value = new QueryClient({
-		defaultOptions: { queries: { retry: false } },
+		defaultOptions: {
+			queries: {
+				retry: false,
+				refetchOnReconnect: false,
+				refetchOnWindowFocus: false,
+			},
+		},
 	});
 	clients.push(value);
 	return value;
@@ -115,6 +123,7 @@ beforeEach(() => {
 });
 afterEach(() => {
 	cleanup();
+	for (const stop of subscriptions.splice(0)) stop();
 	for (const value of clients.splice(0)) value.clear();
 	localStorage.clear();
 	onUnauthorized(() => {});
@@ -285,7 +294,7 @@ it("clears all saved plan data on any authenticated API 401", async () => {
 	expect(localStorage.getItem(offlineCacheKey)).toBeNull();
 });
 
-it("hides the banner and refetches the active plan on reconnect", async () => {
+it("verifies the session and refetches the active plan once per reconnect or focus", async () => {
 	const value = await savedClient();
 	const fetcher = vi
 		.spyOn(globalThis, "fetch")
@@ -293,21 +302,36 @@ it("hides the banner and refetches the active plan on reconnect", async () => {
 			async (url) =>
 				new Response(
 					JSON.stringify(
-						String(url).includes("/overdue")
-							? { sessions: [], todos: [] }
-							: { days: [], anytime: [] },
+						String(url) === "/api/me"
+							? student
+							: String(url) === "/api/limits"
+								? defaultLimits
+								: String(url).includes("/overdue")
+									? { sessions: [], todos: [] }
+									: { days: [], anytime: [] },
 					),
 				),
 		);
-	await renderQueryClientRoute(value);
+	const view = await renderQueryClientRoute(value);
+	subscriptions.push(
+		listenForPlanRefresh(value, {
+			signedOut: () => view.router.navigate({ to: "/sign-in", replace: true }),
+			invalidate: () => view.router.invalidate(),
+		}),
+	);
+	const calls = (path: string) =>
+		fetcher.mock.calls.filter(([url]) => String(url).startsWith(path)).length;
 	expect(screen.getByRole("status")).toHaveTextContent("Offline");
 	await act(async () => online(true));
-	await waitFor(() =>
-		expect(
-			fetcher.mock.calls.some(([url]) => String(url).startsWith("/api/days?")),
-		).toBe(true),
-	);
+	await waitFor(() => expect(calls("/api/days?")).toBe(1));
+	await waitFor(() => expect(value.isFetching()).toBe(0));
 	expect(screen.queryByText(offlineHint)).not.toBeInTheDocument();
+	await act(async () => {
+		window.dispatchEvent(new Event("focus"));
+	});
+	await waitFor(() => expect(calls("/api/days?")).toBe(2));
+	await waitFor(() => expect(value.isFetching()).toBe(0));
+	expect(calls("/api/me")).toBe(2);
 });
 
 it("removes persisted data on sign-out and an offline reload has no plan", async () => {
@@ -397,4 +421,133 @@ it("clears persisted plan data after confirming account deletion", async () => {
 	).toBeVisible();
 	expect(localStorage.getItem(offlineCacheKey)).toBeNull();
 	expect(value.getQueryData(["days", today, today])).toBeUndefined();
+});
+
+it("reuses saved day ranges and weekly progress after an offline date rollover", async () => {
+	await savedClient();
+	vi.setSystemTime(new Date(2026, 9, 27, 12));
+	const fetcher = vi
+		.spyOn(globalThis, "fetch")
+		.mockRejectedValue(new Error("Offline"));
+	const restored = client();
+	await prepareOfflineCache(restored);
+	const view = await renderQueryClientRoute(restored);
+	expect(
+		await screen.findByRole("checkbox", { name: "Cached essay, 2h" }),
+	).toBeDisabled();
+	expect(screen.getByText(/Saved plan · 27 Oct 2026/)).toBeVisible();
+	expect(screen.queryByText("No saved plan for today")).not.toBeInTheDocument();
+	await act(async () => {
+		await view.router.navigate({ to: "/upcoming" });
+	});
+	expect(
+		await screen.findByRole("button", { name: /This week 2 \/ 3h/ }),
+	).toBeVisible();
+	expect(
+		screen.getByRole("checkbox", { name: "Cached essay, 2h" }),
+	).toBeDisabled();
+	expect(screen.getByText(/Saved plan · 27 Oct 2026/)).toBeVisible();
+	expect(screen.queryByText("No saved upcoming plan")).not.toBeInTheDocument();
+	expect(fetcher).not.toHaveBeenCalled();
+});
+
+it("dates older offline snapshots when none of their days match the new date", async () => {
+	await savedClient();
+	vi.setSystemTime(new Date(2026, 10, 3, 12));
+	const restored = client();
+	await prepareOfflineCache(restored);
+	const view = await renderQueryClientRoute(restored);
+	expect(
+		await screen.findByRole("checkbox", { name: "Cached essay, 2h" }),
+	).toBeDisabled();
+	expect(screen.getByText(/Saved plan · 26 Oct 2026/)).toBeVisible();
+	await act(async () => {
+		await view.router.navigate({ to: "/upcoming" });
+	});
+	expect(
+		await screen.findByRole("button", { name: /Week of 26 Oct 2 \/ 3h/ }),
+	).toBeVisible();
+	expect(screen.getByText(/Saved plan · 27 Oct 2026/)).toBeVisible();
+});
+
+it("retries failed startup verification before showing a restored plan online", async () => {
+	await savedClient();
+	online(true);
+	const fetcher = vi
+		.spyOn(globalThis, "fetch")
+		.mockRejectedValueOnce(new TypeError("Temporary network failure"))
+		.mockResolvedValue(new Response(JSON.stringify(student)));
+	const restored = client();
+	await expect(prepareOfflineCache(restored)).rejects.toThrow(
+		"Temporary network failure",
+	);
+	// The root guard's Retry must verify the cookie again, then subscribe persistence.
+	await waitForOfflineCache(restored);
+	expect(fetcher).toHaveBeenCalledTimes(2);
+	expect(restored.getQueryData(["session"])).toEqual(student);
+	restored.setQueryData(["days", "2026-10-28", "2026-10-28"], {
+		days: [],
+		anytime: [{ title: "Recovered persistence" }],
+	});
+	await waitFor(() =>
+		expect(localStorage.getItem(offlineCacheKey)).toContain(
+			"Recovered persistence",
+		),
+	);
+});
+
+it("shows a saved plan when a new-date request fails before going offline", async () => {
+	await savedClient();
+	vi.setSystemTime(new Date(2026, 9, 27, 12));
+	const restored = client();
+	await prepareOfflineCache(restored);
+	online(true);
+	vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
+		if (String(url) === "/api/me") return new Response(JSON.stringify(student));
+		if (String(url) === "/api/limits")
+			return new Response(JSON.stringify(defaultLimits));
+		if (String(url).includes("/overdue"))
+			return new Response(JSON.stringify({ sessions: [], todos: [] }));
+		return new Response(
+			JSON.stringify({
+				error: { code: "unavailable", message: "Temporary outage" },
+			}),
+			{ status: 503 },
+		);
+	});
+	await renderQueryClientRoute(restored);
+	expect(
+		await screen.findByText("Couldn't load your plan — retry"),
+	).toBeVisible();
+	await act(async () => online(false));
+	expect(
+		await screen.findByRole("checkbox", { name: "Cached essay, 2h" }),
+	).toBeDisabled();
+	expect(screen.getByText(/Saved plan · 27 Oct 2026/)).toBeVisible();
+	expect(
+		screen.queryByText("Couldn't load your plan — retry"),
+	).not.toBeInTheDocument();
+});
+
+it("retains the last successful plan through a failed refetch and offline reload", async () => {
+	const value = await savedClient();
+	await expect(
+		value.fetchQuery({
+			queryKey: ["days", today, today],
+			networkMode: "always",
+			retry: false,
+			queryFn: async () => {
+				throw new Error("Temporary plan failure");
+			},
+		}),
+	).rejects.toThrow("Temporary plan failure");
+	await waitFor(() =>
+		expect(localStorage.getItem(offlineCacheKey)).toContain("Cached essay"),
+	);
+	const restored = client();
+	await prepareOfflineCache(restored);
+	await renderQueryClientRoute(restored);
+	expect(
+		await screen.findByRole("checkbox", { name: "Cached essay, 2h" }),
+	).toBeDisabled();
 });

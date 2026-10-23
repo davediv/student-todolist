@@ -10,8 +10,9 @@ export function getContext() {
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: {
-				refetchOnWindowFocus: "always",
-				refetchOnReconnect: "always",
+				// The router verifies the session before refetching on these events.
+				refetchOnWindowFocus: false,
+				refetchOnReconnect: false,
 				gcTime: offlineCacheMaxAge,
 			},
 			mutations: { networkMode: "always", retry: false },

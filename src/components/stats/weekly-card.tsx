@@ -1,9 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import { Dialog } from "radix-ui";
 import { Button } from "#/components/ui/button";
 import { formatDate } from "#/lib/format";
+import { useOnline } from "#/lib/offline";
+import { savedQuery } from "#/lib/offline-cache";
 import { type WeekStats, weeklyStatsQueryOptions } from "#/lib/stats-query";
+import { weekStart } from "#/lib/week";
 import "./weekly-card.css";
 
 function hours(week: WeekStats) {
@@ -32,10 +35,23 @@ function WeekBar({ week, label }: { week: WeekStats; label: string }) {
 }
 
 export function WeeklyCard({ today }: { today: string }) {
+	const client = useQueryClient();
+	const online = useOnline();
 	const query = useQuery(weeklyStatsQueryOptions(today));
-	if (query.isPending)
+	const data =
+		query.data ??
+		(!online
+			? savedQuery<{ weeks: WeekStats[] }>(client, ["stats", "weekly"])
+			: undefined);
+	if (!data && !online)
+		return (
+			<p className="weekly-card">
+				No saved weekly progress. Connect to load it.
+			</p>
+		);
+	if (!data && query.isPending)
 		return <output className="weekly-card">Loading weekly progress…</output>;
-	if (query.isError)
+	if (query.isError && !data)
 		return (
 			<div className="weekly-card" role="alert">
 				<p>Couldn't load weekly progress</p>
@@ -44,23 +60,35 @@ export function WeeklyCard({ today }: { today: string }) {
 				</Button>
 			</div>
 		);
-	const weeks = query.data.weeks;
+	if (!data) return null;
+	const weeks = data.weeks;
 	const current = weeks[0];
+	const currentLabel =
+		current.startDate === weekStart(today)
+			? "This week"
+			: `Week of ${formatDate(current.startDate, undefined, "en-GB")}`;
 	return (
 		<Dialog.Root>
 			<Dialog.Trigger asChild>
 				<button
 					type="button"
 					className="weekly-card weekly-card-trigger"
-					aria-label={`This week ${hours(current)}. Show last 4 weeks`}
+					aria-label={`${currentLabel} ${hours(current)}. Show last 4 weeks`}
 				>
 					<span className="weekly-card-heading">
 						<span>
-							This week <strong>{hours(current)}</strong>
+							{currentLabel} <strong>{hours(current)}</strong>
 						</span>
 						<ChevronRight size={18} aria-hidden="true" />
 					</span>
-					<WeekBar week={current} label="This week's study hours" />
+					<WeekBar
+						week={current}
+						label={
+							currentLabel === "This week"
+								? "This week's study hours"
+								: `${currentLabel} study hours`
+						}
+					/>
 				</button>
 			</Dialog.Trigger>
 			<Dialog.Portal>
@@ -77,7 +105,10 @@ export function WeeklyCard({ today }: { today: string }) {
 								<li key={week.startDate}>
 									<div className="weekly-card-heading">
 										<h3>
-											{index === 0 ? "This week" : "Week of"} {range}
+											{index === 0 && current.startDate === weekStart(today)
+												? "This week"
+												: "Week of"}{" "}
+											{range}
 										</h3>
 										<span>{hours(week)}</span>
 									</div>

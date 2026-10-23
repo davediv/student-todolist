@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { DropdownMenu } from "radix-ui";
@@ -7,11 +7,12 @@ import { DayView } from "#/components/plan/day-view";
 import { OverdueStrip } from "#/components/plan/overdue-strip";
 import { EmptyState } from "#/components/shared/empty-state";
 import { MutationButton } from "#/components/shared/mutation-button";
+import { SavedPlanNotice } from "#/components/shared/saved-plan-notice";
 import { SkeletonRows } from "#/components/shared/skeleton";
 import { TodoRow } from "#/components/todos/todo-row";
 import { TodoSheet } from "#/components/todos/todo-sheet";
 import { Button } from "#/components/ui/button";
-import { daysQueryOptions } from "#/lib/days-query";
+import { daysQueryOptions, savedDays } from "#/lib/days-query";
 import { formatDate, localDate } from "#/lib/format";
 import { isOnline, useOnline } from "#/lib/offline";
 export const Route = createFileRoute("/_app/")({
@@ -25,9 +26,14 @@ export const Route = createFileRoute("/_app/")({
 function Today() {
 	const today = localDate();
 	const online = useOnline();
+	const client = useQueryClient();
 	const query = useQuery(daysQueryOptions(today, today));
-	const day = query.data?.days[0];
-	const anytime = query.data?.anytime ?? [];
+	const saved =
+		!online && !query.data ? savedDays(client, today, today) : undefined;
+	const data = query.data ?? saved;
+	const pending = query.isPending && !data;
+	const day = data?.days[0];
+	const anytime = data?.anytime ?? [];
 	const [addingTodo, setAddingTodo] = useState(false);
 	return (
 		<>
@@ -87,14 +93,15 @@ function Today() {
 				</DropdownMenu.Root>
 			</div>
 			<OverdueStrip />
-			{query.isPending && !online ? (
+			{saved && <SavedPlanNotice days={saved.days} />}
+			{pending && !online ? (
 				<EmptyState
 					title="No saved plan for today"
 					description="Connect to load your plan on this device."
 				/>
-			) : query.isPending ? (
+			) : pending ? (
 				<SkeletonRows />
-			) : query.isError ? (
+			) : query.isError && !data ? (
 				<div className="plan-error" role="alert">
 					<p>Couldn't load your plan — retry</p>
 					<Button variant="outline" onClick={() => void query.refetch()}>
