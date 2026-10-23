@@ -7,10 +7,13 @@ import {
 import { useState } from "react";
 import { DaysOffEditor } from "#/components/limits/days-off-editor";
 import { LimitsEditor } from "#/components/limits/limits-editor";
+import { ConfirmDialog } from "#/components/shared/confirm-dialog";
 import { useToast } from "#/components/shared/toast";
 import { Button } from "#/components/ui/button";
+import { apiClient } from "#/lib/api-client";
 import { authClient } from "#/lib/auth-client";
 import { limitsQueryOptions, saveLimits } from "#/lib/limits-query";
+import { sessionQueryOptions } from "#/lib/session";
 export const Route = createFileRoute("/_app/settings")({ component: Settings });
 function Settings() {
 	const { user } = Route.useRouteContext();
@@ -21,15 +24,23 @@ function Settings() {
 	const navigate = useNavigate();
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState("");
+	async function leaveAccount() {
+		queryClient.clear();
+		queryClient.setQueryData(sessionQueryOptions.queryKey, null);
+		await navigate({ to: "/sign-in", replace: true });
+		await router.invalidate();
+	}
+	async function deleteAccount() {
+		await apiClient.api.account.$delete();
+		await leaveAccount();
+	}
 	async function signOut() {
 		setBusy(true);
 		setError("");
 		try {
 			const result = await authClient.signOut();
 			if (result.error) throw new Error(result.error.message);
-			queryClient.clear();
-			await router.invalidate();
-			await navigate({ to: "/sign-in", replace: true });
+			await leaveAccount();
 		} catch {
 			setError("Could not sign out. Please try again.");
 			setBusy(false);
@@ -84,6 +95,16 @@ function Settings() {
 				<Button variant="outline" disabled={busy} onClick={signOut}>
 					{busy ? "Signing out…" : "Sign out"}
 				</Button>
+				<ConfirmDialog
+					trigger={
+						<Button variant="destructive" disabled={busy}>
+							Delete account
+						</Button>
+					}
+					title="Delete your account?"
+					description="Your account, deadlines, study sessions, recurring series, todos, study limits, days off, and days of use will be permanently deleted from the live database. You'll be signed out."
+					onConfirm={deleteAccount}
+				/>
 			</section>
 		</>
 	);

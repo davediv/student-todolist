@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getDb } from "#/db";
 import { activityDays } from "#/db/schema";
 import { getAuth } from "#/lib/auth";
+import { accountRoutes } from "./account";
 import { daysRoutes } from "./days";
 import { daysOffRoutes } from "./days-off";
 import { deadlineEditRoutes } from "./deadline-edit";
@@ -93,6 +94,7 @@ export function createApiApp() {
 		return response;
 	});
 	return app
+		.route("/", accountRoutes)
 		.route("/", overdueRoutes)
 		.route("/", replanAllRoutes)
 		.route("/", todosRoutes)
