@@ -7,9 +7,11 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { useEffect } from "react";
+import { SketchDefs } from "#/components/shared/sketch-defs";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 import { waitForOfflineCache } from "../lib/offline-cache";
 import { registerServiceWorker } from "../lib/register-service-worker";
+import { snapThemeChanges } from "../lib/theme";
 import appCss from "../styles.css?url";
 
 interface MyRouterContext {
@@ -47,6 +49,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 
 function RootDocument({ children }: { children: React.ReactNode }) {
 	useEffect(registerServiceWorker, []);
+	useEffect(snapThemeChanges, []);
 	return (
 		<html lang="en">
 			<head>
@@ -54,16 +57,17 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				{/* Route-managed metadata deduplicates by name, ignoring media. */}
 				<meta
 					name="theme-color"
-					content="#f7f9f8"
+					content="#fbfaf7"
 					media="(prefers-color-scheme: light)"
 				/>
 				<meta
 					name="theme-color"
-					content="#131b18"
+					content="#17181a"
 					media="(prefers-color-scheme: dark)"
 				/>
 			</head>
 			<body>
+				<SketchDefs />
 				{children}
 				{import.meta.env.DEV && (
 					<TanStackDevtools

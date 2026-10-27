@@ -3,10 +3,13 @@ import {
 	Link,
 	Outlet,
 	redirect,
+	useLocation,
 } from "@tanstack/react-router";
 import { CalendarDays, CheckCheck, ListTodo, Settings } from "lucide-react";
+import { BrandMark } from "#/components/shared/brand-mark";
 import { OfflineBanner } from "#/components/shared/offline-banner";
 import { ToastProvider } from "#/components/shared/toast";
+import { formatDate, localDate } from "#/lib/format";
 import { limitsQueryOptions } from "#/lib/limits-query";
 import { isOnline } from "#/lib/offline";
 import { sessionQueryOptions } from "#/lib/session";
@@ -34,6 +37,11 @@ export const Route = createFileRoute("/_app")({
 	component: AppShell,
 });
 function AppShell() {
+	const { user } = Route.useRouteContext();
+	const pathname = useLocation({ select: (location) => location.pathname });
+	const sheet = destinations.find(({ to }) =>
+		to === "/" ? pathname === "/" : pathname.startsWith(to),
+	);
 	return (
 		<ToastProvider>
 			<div className="app-shell">
@@ -41,10 +49,8 @@ function AppShell() {
 					Skip to content
 				</a>
 				<header className="brand">
-					<span className="brand-mark" aria-hidden="true">
-						<CheckCheck size={22} />
-					</span>
-					<h1>Student Todo</h1>
+					<BrandMark />
+					<h1 className="brand-name">Student Todo</h1>
 				</header>
 				<nav className="app-nav" aria-label="Main navigation">
 					{destinations.map(({ to, label, icon: Icon }) => (
@@ -59,6 +65,25 @@ function AppShell() {
 						</Link>
 					))}
 				</nav>
+				{/* Drafting title block: decorative, repeats what the page already says. */}
+				<div className="title-block" aria-hidden="true">
+					<p>
+						<span>Sheet</span>
+						{sheet?.label}
+					</p>
+					<p>
+						<span>Drawn by</span>
+						{user.name.split(" ")[0]}
+					</p>
+					<p>
+						<span>Date</span>
+						{formatDate(
+							localDate(),
+							{ day: "2-digit", month: "2-digit", year: "2-digit" },
+							"en-GB",
+						)}
+					</p>
+				</div>
 				<main id="main" tabIndex={-1}>
 					<OfflineBanner />
 					<Outlet />

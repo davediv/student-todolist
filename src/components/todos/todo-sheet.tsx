@@ -60,7 +60,10 @@ export function TodoSheet({
 		>
 			<Dialog.Portal>
 				<Dialog.Overlay className="dialog-overlay" />
-				<Dialog.Content className="dialog-content" aria-busy={busy}>
+				<Dialog.Content
+					className="dialog-content sketch sketch-draw"
+					aria-busy={busy}
+				>
 					<Dialog.Title>{todo ? "Edit todo" : "Add a todo"}</Dialog.Title>
 					<Dialog.Description>
 						A quick task, with a date only if you need one.

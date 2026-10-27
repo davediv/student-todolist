@@ -1,0 +1,221 @@
+/*
+ * Conceptual Sketch tokens: paper, graphite, and one highlighter.
+ * Primitives describe what a value is; semantic roles say what it is for.
+ * Components only read the semantic layer. Dark mode redefines that layer.
+ */
+:root {
+	color-scheme: light dark;
+
+	/* Primitives */
+	--paper-0: #ffffff;
+	--paper-100: #fbfaf7;
+	--graphite-300: #a8abb2;
+	/* #7c7e84 in the style spec; darkened to 5.3:1 on paper for text. */
+	--graphite-500: #66686e;
+	--graphite-800: #2a2b2e;
+	--slate-0: #202226;
+	--slate-100: #17181a;
+	--chalk-300: #5a5d64;
+	--chalk-500: #9c9ea5;
+	--chalk-800: #ebebe8;
+	--highlighter: #f2d14e;
+	/* #d0453b in the style spec; darkened to 5.2:1 for text. */
+	--red-pen: #bf3a30;
+	--red-pen-light: #ef7a6f;
+	--blue-pen: #2f5fa8;
+	--blue-pen-light: #7fa6e6;
+	--construction-blue: #c9d6e8;
+	--construction-blue-dark: #587092;
+
+	/* Surfaces */
+	--color-surface: var(--paper-100);
+	--color-surface-raised: var(--paper-0);
+	/* Tracing paper laid over the sheet: secondary content and scrims. */
+	--color-surface-tracing: rgb(255 255 255 / 0.7);
+	--color-scrim: rgb(251 250 247 / 0.74);
+
+	/* Content */
+	--color-content: var(--graphite-800);
+	--color-content-muted: var(--graphite-500);
+	--color-content-subtle: var(--graphite-300);
+
+	/* Pencil */
+	--color-stroke: color-mix(in srgb, var(--graphite-800) 90%, transparent);
+	--color-stroke-strong: var(--graphite-800);
+	--color-stroke-soft: var(--graphite-300);
+	--color-guide: color-mix(in srgb, var(--construction-blue) 42%, transparent);
+	--color-hatch: color-mix(in srgb, var(--graphite-800) 13%, transparent);
+	--color-hatch-strong: color-mix(
+		in srgb,
+		var(--graphite-800) 32%,
+		transparent
+	);
+
+	/* Emphasis: colour only ever means "look here". */
+	--color-highlight-band: color-mix(
+		in srgb,
+		var(--highlighter) 75%,
+		transparent
+	);
+	--color-danger: var(--red-pen);
+	--color-danger-hatch: color-mix(in srgb, var(--red-pen) 18%, transparent);
+	--color-focus: var(--blue-pen);
+	--image-outline: rgb(0 0 0 / 0.1);
+
+	/* Images whose stroke colour cannot come from currentColor */
+	--tick-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a2b2e' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.6 12.6c1.6 1.2 3.1 3 4.3 5.4C11.3 12.3 15 7.9 19.9 4.4'/%3E%3C/svg%3E");
+	--chevron-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232a2b2e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.8 9.4c2.1 1.7 4.1 3.5 6.1 5.4 2.1-2.1 4.2-3.9 6.4-5.6'/%3E%3C/svg%3E");
+	--grain-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .07 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+
+	/* Masks: alpha only, so they take any colour and both themes */
+	--mask-underline: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 14' preserveAspectRatio='none' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath vector-effect='non-scaling-stroke' d='M2 5.2C48 3 112 2.4 198 4'/%3E%3Cpath vector-effect='non-scaling-stroke' d='M10 10.6c46-1.8 104-2 182-.2'/%3E%3C/svg%3E");
+	--mask-circle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 52' preserveAspectRatio='none' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Cpath vector-effect='non-scaling-stroke' d='M74 6.5C42 2.5 9 9.5 5.5 25 2.6 38.4 29 47.6 61 46.8c31.5-.8 54.6-9.4 53.4-23.4C113.7 11.2 93 3.6 54.5 5.2'/%3E%3C/svg%3E");
+	--mask-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 24' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4c9.5.6 19 5.2 25.6 14.2'/%3E%3Cpath d='M20.6 17.4l7.8 1.4-.6-7.9'/%3E%3C/svg%3E");
+
+	/* Hatched shading replaces every drop shadow. */
+	--hatch: repeating-linear-gradient(
+		-45deg,
+		var(--color-hatch) 0 1px,
+		transparent 1.5px 5px
+	);
+	--hatch-dense: repeating-linear-gradient(
+		-45deg,
+		var(--color-hatch-strong) 0 1px,
+		transparent 1.5px 3.5px
+	);
+	--hatch-danger: repeating-linear-gradient(
+		-45deg,
+		var(--color-danger-hatch) 0 1px,
+		transparent 1.5px 5px
+	);
+	--highlight-swipe: linear-gradient(
+		98deg,
+		transparent 1.5%,
+		var(--color-highlight-band) 4% 96%,
+		transparent 98.5%
+	);
+
+	/* Typography: hand for frames and labels, clean sans for content, mono for measures */
+	--font-hand:
+		"Caveat Variable", "Caveat", "Bradley Hand", "Segoe Print", system-ui,
+		sans-serif;
+	--font-body:
+		system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+	--font-mono:
+		"Space Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+	/* Scale 1.25: 12 · 14 · 16 · 20 · 25 · 31 · 39 · 49 */
+	--type-display: 700 3.052rem / 1.05 var(--font-hand);
+	--type-title: 700 2.441rem / 1.08 var(--font-hand);
+	--type-heading: 700 1.953rem / 1.1 var(--font-hand);
+	--type-subheading: 600 1.5625rem / 1.15 var(--font-hand);
+	--type-note: 500 1.25rem / 1.2 var(--font-hand);
+	--type-note-strong: 600 1.25rem / 1.2 var(--font-hand);
+	--type-note-sm: 500 1.125rem / 1.2 var(--font-hand);
+	--type-nav: 600 1.125rem / 1.2 var(--font-hand);
+	--type-body-lg: 600 1.125rem / 1.4 var(--font-body);
+	--type-body: 400 1rem / 1.5 var(--font-body);
+	--type-body-strong: 600 1rem / 1.5 var(--font-body);
+	--type-prose: 400 1rem / 1.65 var(--font-body);
+	--type-body-sm: 400 0.875rem / 1.5 var(--font-body);
+	--type-button: 600 0.9375rem / 1 var(--font-body);
+	--type-button-lg: 600 1.0625rem / 1 var(--font-body);
+	--type-label: 400 0.75rem / 1.4 var(--font-mono);
+	--type-figure: 700 0.875rem / 1.2 var(--font-mono);
+	--tracking-body-lg: -0.01em;
+	--tracking-label: 0.06em;
+
+	/* Space */
+	--space-1: 0.25rem;
+	--space-2: 0.5rem;
+	--space-3: 0.75rem;
+	--space-4: 1rem;
+	--space-5: 1.25rem;
+	--space-6: 1.5rem;
+	--space-8: 2rem;
+	--space-10: 2.5rem;
+	--space-12: 3rem;
+	--space-16: 4rem;
+	--space-20: 5rem;
+
+	/* Shape: drawn, not declared */
+	--radius-sm: 2px;
+	--radius-md: 4px;
+	--radius-drawn: 3px 5px 4px 6px / 5px 3px 6px 4px;
+	--stroke-width: 1.75px;
+	--stroke-width-heavy: 2.25px;
+	--stroke-overshoot: 3px;
+	--stroke-overshoot-sm: 2px;
+	--hatch-offset: 6px;
+	--hatch-offset-sm: 3px;
+	--hatch-offset-xs: 1px;
+	--grid-size: 24px;
+	--target-size: 2.75rem;
+	--target-size-icon: 2.5rem;
+	--target-size-sm: 2.25rem;
+	/* WCAG 2.2 minimum; only for inline text links. */
+	--target-size-min: 1.5rem;
+	/* Hidden-line dashes: one rhythm everywhere. */
+	--dash: 0.45rem;
+	--dash-period: 0.75rem;
+
+	/* Layout */
+	--sidebar-width: 15rem;
+	--content-width: 56rem;
+	--measure: 40rem;
+	--bottom-nav-height: 4.75rem;
+
+	/* Motion: drawn, not moved */
+	--duration-fast: 150ms;
+	--duration-enter: 200ms;
+	--duration-normal: 360ms;
+	--duration-draw: 550ms;
+	--stagger: 60ms;
+	--duration-loop: 1.6s;
+	--ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+	/* Layers */
+	--z-nav: 100;
+	--z-overlay: 1200;
+	--z-modal: 1300;
+	--z-popover: 1400;
+	--z-toast: 1500;
+	--z-skip: 1600;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--color-surface: var(--slate-100);
+		--color-surface-raised: var(--slate-0);
+		--color-surface-tracing: rgb(32 34 38 / 0.72);
+		--color-scrim: rgb(16 17 19 / 0.74);
+		--color-content: var(--chalk-800);
+		--color-content-muted: var(--chalk-500);
+		--color-content-subtle: var(--chalk-300);
+		--color-stroke: color-mix(in srgb, var(--chalk-800) 82%, transparent);
+		--color-stroke-strong: var(--chalk-800);
+		--color-stroke-soft: var(--chalk-300);
+		--color-guide: color-mix(
+			in srgb,
+			var(--construction-blue-dark) 18%,
+			transparent
+		);
+		--color-hatch: color-mix(in srgb, var(--chalk-800) 12%, transparent);
+		--color-hatch-strong: color-mix(in srgb, var(--chalk-800) 30%, transparent);
+		--color-highlight-band: color-mix(
+			in srgb,
+			var(--highlighter) 28%,
+			transparent
+		);
+		--color-danger: var(--red-pen-light);
+		--color-danger-hatch: color-mix(
+			in srgb,
+			var(--red-pen-light) 20%,
+			transparent
+		);
+		--color-focus: var(--blue-pen-light);
+		--image-outline: rgb(255 255 255 / 0.1);
+		--tick-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ebebe8' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.6 12.6c1.6 1.2 3.1 3 4.3 5.4C11.3 12.3 15 7.9 19.9 4.4'/%3E%3C/svg%3E");
+		--chevron-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ebebe8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.8 9.4c2.1 1.7 4.1 3.5 6.1 5.4 2.1-2.1 4.2-3.9 6.4-5.6'/%3E%3C/svg%3E");
+		--grain-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 .05 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+	}
+}

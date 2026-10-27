@@ -48,11 +48,11 @@ function Settings() {
 	return (
 		<>
 			<p className="eyebrow">Make it yours</p>
-			<h2>Settings</h2>
+			<h2 className="page-title">Settings</h2>
 			<p className="page-description">
 				Build a study rhythm that fits your week.
 			</p>
-			<section className="settings-section">
+			<section className="settings-section sketch">
 				<h3>Study limits</h3>
 				<p className="page-description">
 					Hours available each day. Existing sessions stay where they are.
@@ -69,7 +69,7 @@ function Settings() {
 				)}
 			</section>
 			<DaysOffEditor />
-			<section className="account-card">
+			<section className="account-card sketch">
 				<h3>Account</h3>
 				<div className="account-profile">
 					{user.image ? (
@@ -91,19 +91,21 @@ function Settings() {
 					</div>
 				</div>
 				{error && <p role="alert">{error}</p>}
-				<MutationButton variant="outline" disabled={busy} onClick={signOut}>
-					{busy ? "Signing out…" : "Sign out"}
-				</MutationButton>
-				<ConfirmDialog
-					trigger={
-						<MutationButton variant="destructive" disabled={busy}>
-							Delete account
-						</MutationButton>
-					}
-					title="Delete your account?"
-					description="Your account, deadlines, study sessions, recurring series, todos, study limits, days off, and days of use will be permanently deleted from the live database. You'll be signed out."
-					onConfirm={deleteAccount}
-				/>
+				<div className="account-actions">
+					<MutationButton variant="outline" disabled={busy} onClick={signOut}>
+						{busy ? "Signing out…" : "Sign out"}
+					</MutationButton>
+					<ConfirmDialog
+						trigger={
+							<MutationButton variant="destructive" disabled={busy}>
+								Delete account
+							</MutationButton>
+						}
+						title="Delete your account?"
+						description="Your account, deadlines, study sessions, recurring series, todos, study limits, days off, and days of use will be permanently deleted from the live database. You'll be signed out."
+						onConfirm={deleteAccount}
+					/>
+				</div>
 			</section>
 		</>
 	);

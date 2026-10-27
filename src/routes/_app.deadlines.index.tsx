@@ -4,6 +4,7 @@ import { Repeat2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { DeadlineActions } from "#/components/deadlines/deadline-actions";
 import { DeadlineForm } from "#/components/deadlines/deadline-form";
+import { DeadlineMeter } from "#/components/deadlines/deadline-meter";
 import { TypeIcon } from "#/components/deadlines/type-icon";
 import { SeriesForm } from "#/components/series/series-form";
 import { EmptyState } from "#/components/shared/empty-state";
@@ -30,38 +31,57 @@ function Deadlines() {
 		!!Route.useSearch().addSeries,
 	);
 	const addTrigger = useRef<HTMLButtonElement>(null);
-	const wasEditing = useRef(false);
+	const addSeriesTrigger = useRef<HTMLButtonElement>(null);
+	const lastOpened = useRef<"deadline" | "series" | null>(null);
 	useEffect(() => {
-		if (!adding && !addingSeries && wasEditing.current)
-			addTrigger.current?.focus();
-		wasEditing.current = adding || addingSeries;
+		if (adding) lastOpened.current = "deadline";
+		else if (addingSeries) lastOpened.current = "series";
+		else if (lastOpened.current) {
+			(lastOpened.current === "series"
+				? addSeriesTrigger
+				: addTrigger
+			).current?.focus();
+			lastOpened.current = null;
+		}
 	}, [adding, addingSeries]);
-	function list(items: typeof deadlines.active) {
+	function list(items: typeof deadlines.active, pastDue = false) {
 		return (
 			<ul className="deadline-list">
 				{items.map((deadline) => (
-					<li key={deadline.id}>
+					<li key={deadline.id} className="deadline-item sketch">
 						<Link
 							to="/deadlines/$deadlineId"
 							params={{ deadlineId: deadline.id }}
 							className="deadline-card"
 						>
 							<div>
-								<TypeIcon type={deadline.type} />
+								<span className="deadline-tags">
+									<TypeIcon type={deadline.type} />
+									{deadline.seriesId && (
+										<span className="deadline-type">
+											<Repeat2 size={16} aria-hidden="true" />
+											<span className="sr-only">Recurring deadline</span>
+										</span>
+									)}
+								</span>
 								<h3>{deadline.title}</h3>
-								{deadline.seriesId && (
-									<span className="deadline-type">
-										<Repeat2 size={16} aria-hidden="true" />
-										<span className="sr-only">Recurring deadline</span>
-									</span>
-								)}
-								<p>Due {formatDate(deadline.dueDate)}</p>
+								<p
+									className={
+										pastDue ? "deadline-due is-past-due" : "deadline-due"
+									}
+								>
+									Due {formatDate(deadline.dueDate)}
+								</p>
 							</div>
 							<div className="deadline-progress">
 								<strong>
 									{deadline.tickedMinutes / 60} /{" "}
 									{formatHours(deadline.estimateMinutes)}
 								</strong>
+								<DeadlineMeter
+									tickedMinutes={deadline.tickedMinutes}
+									estimateMinutes={deadline.estimateMinutes}
+								/>
 								{deadline.status === "active" &&
 									deadline.unplannedMinutes > 0 && (
 										<p className="shortfall">
@@ -80,11 +100,20 @@ function Deadlines() {
 		<>
 			<p className="eyebrow">See the bigger picture</p>
 			<div className="page-heading">
-				<h2>Deadlines</h2>
+				<h2 className="page-title">Deadlines</h2>
 				{!adding && !addingSeries && (
-					<MutationButton ref={addTrigger} onClick={() => setAdding(true)}>
-						+ Deadline
-					</MutationButton>
+					<div className="page-actions">
+						<MutationButton ref={addTrigger} onClick={() => setAdding(true)}>
+							+ Deadline
+						</MutationButton>
+						<MutationButton
+							ref={addSeriesTrigger}
+							variant="outline"
+							onClick={() => setAddingSeries(true)}
+						>
+							+ Recurring
+						</MutationButton>
+					</div>
 				)}
 			</div>
 			<p className="page-description">
@@ -111,21 +140,21 @@ function Deadlines() {
 				deadlines.done.length ? (
 				<>
 					{deadlines.pastDue.length > 0 && (
-						<section aria-label="Past due">
-							<h3>Past due</h3>
-							{list(deadlines.pastDue)}
+						<section className="deadline-group" aria-label="Past due">
+							<h3 className="group-label is-past-due">Past due</h3>
+							{list(deadlines.pastDue, true)}
 						</section>
 					)}
-					<section aria-label="Active">
-						<h3>Active</h3>
+					<section className="deadline-group" aria-label="Active">
+						<h3 className="group-label">Active</h3>
 						{deadlines.active.length ? (
 							list(deadlines.active)
 						) : (
-							<p>No active deadlines.</p>
+							<p className="day-empty">No active deadlines.</p>
 						)}
 					</section>
 					{deadlines.done.length > 0 && (
-						<details className="done-deadlines">
+						<details className="done-deadlines deadline-group">
 							<summary>Done ({deadlines.done.length})</summary>
 							{list(deadlines.done)}
 						</details>

@@ -50,7 +50,7 @@ export function ConfirmDialog({
 			<Dialog.Portal>
 				<Dialog.Overlay className="dialog-overlay" />
 				<Dialog.Content
-					className="dialog-content"
+					className="dialog-content sketch sketch-draw"
 					aria-busy={busy}
 					onCloseAutoFocus={
 						returnFocus

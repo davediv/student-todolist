@@ -1,0 +1,130 @@
+/* Settings: three drawn sheets. */
+.settings-section,
+.account-card {
+	margin-bottom: var(--space-8);
+	padding: var(--space-6) var(--space-5);
+}
+
+.settings-section > h3,
+.account-card > h3 {
+	margin-bottom: var(--space-1);
+	font: var(--type-heading);
+}
+
+.settings-section > .page-description {
+	margin-bottom: var(--space-6);
+	font: var(--type-body-sm);
+}
+
+/* The week as a row of cells, each lettered by hand. */
+.limits-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+	gap: var(--space-4) var(--space-5);
+}
+
+.days-off-form {
+	display: grid;
+	gap: var(--space-4);
+	max-width: 34rem;
+	margin: 0 0 var(--space-4);
+}
+
+.days-off-form > .btn {
+	justify-self: start;
+}
+
+.days-off-list li {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-4);
+	min-height: 3rem;
+	font-variant-numeric: tabular-nums;
+}
+
+.settings-section > output,
+.settings-section > p[role="alert"] {
+	display: block;
+	font: var(--type-body-sm);
+	color: var(--color-content-muted);
+}
+
+.settings-section > p[role="alert"] {
+	color: var(--color-danger);
+}
+
+.account-profile {
+	display: flex;
+	align-items: center;
+	gap: var(--space-4);
+	margin: var(--space-5) 0 var(--space-6);
+}
+
+.account-profile > div {
+	min-width: 0;
+}
+
+.account-profile img,
+.avatar {
+	flex: none;
+	width: 3rem;
+	height: 3rem;
+	border-radius: 50%;
+}
+
+.account-profile img {
+	outline: 1px solid var(--image-outline);
+	outline-offset: -1px;
+}
+
+.avatar {
+	display: grid;
+	place-items: center;
+	font: var(--type-heading);
+	border: var(--stroke-width) solid var(--color-stroke);
+	border-radius: 48% 52% 50% 46% / 52% 46% 54% 48%;
+}
+
+.account-name {
+	margin: 0;
+	font: var(--type-body-lg);
+	letter-spacing: var(--tracking-body-lg);
+}
+
+.account-email {
+	margin: 2px 0 0;
+	font: var(--type-label);
+	letter-spacing: var(--tracking-label);
+	color: var(--color-content-muted);
+	overflow-wrap: anywhere;
+}
+
+.account-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-3);
+}
+
+.account-card > p[role="alert"] {
+	color: var(--color-danger);
+}
+
+@media (min-width: 40rem) {
+	.days-off-form {
+		grid-template-columns: 1fr 1fr;
+		align-items: end;
+	}
+
+	.days-off-form > .btn {
+		grid-column: 1 / -1;
+	}
+}
+
+@media (min-width: 48rem) {
+	.settings-section,
+	.account-card {
+		padding: var(--space-8);
+	}
+}

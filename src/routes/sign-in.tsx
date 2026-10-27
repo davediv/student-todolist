@@ -1,6 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { CheckCheck } from "lucide-react";
 import { useState } from "react";
+import signInSketch from "#/assets/sign-in-sketch.webp";
+import { BrandMark } from "#/components/shared/brand-mark";
 import { OfflineBanner } from "#/components/shared/offline-banner";
 import { Button } from "#/components/ui/button";
 import { authClient } from "#/lib/auth-client";
@@ -46,28 +47,41 @@ function SignIn() {
 	}
 	return (
 		<main className="sign-in">
-			<div className="sign-in-card">
-				<OfflineBanner />
-				<span className="brand-mark" aria-hidden="true">
-					<CheckCheck size={26} />
-				</span>
-				<h1>Student Todo</h1>
-				<p>Turn deadlines into a little progress every day.</p>
-				{(error || failed) && (
-					<p className="sign-in-error" role="alert">
-						{error?.toLowerCase() === "not_allowlisted" && !failed
-							? "This app is invite-only"
-							: "Sign-in failed — try again"}
+			<figure className="sign-in-art">
+				<img
+					src={signInSketch}
+					width={1080}
+					height={720}
+					alt=""
+					loading="lazy"
+					decoding="async"
+				/>
+			</figure>
+			<div className="crop-marks">
+				<div className="cover-sheet sketch sketch-draw">
+					<OfflineBanner />
+					<BrandMark />
+					<h1 className="page-title is-drawn">Student Todo</h1>
+					<p>Turn deadlines into a little progress every day.</p>
+					{(error || failed) && (
+						<p className="sign-in-error" role="alert">
+							{error?.toLowerCase() === "not_allowlisted" && !failed
+								? "This app is invite-only"
+								: "Sign-in failed — try again"}
+						</p>
+					)}
+					<Button
+						size="lg"
+						disabled={busy || !online}
+						aria-busy={busy}
+						onClick={signIn}
+					>
+						{busy ? "Connecting to Google…" : "Sign in with Google"}
+					</Button>
+					<p className="title-stamp">
+						Invite only<span aria-hidden="true"> · Sheet 1 of 1</span>
 					</p>
-				)}
-				<Button
-					size="lg"
-					disabled={busy || !online}
-					aria-busy={busy}
-					onClick={signIn}
-				>
-					{busy ? "Connecting to Google…" : "Sign in with Google"}
-				</Button>
+				</div>
 			</div>
 		</main>
 	);

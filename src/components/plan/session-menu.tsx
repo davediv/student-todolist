@@ -76,7 +76,7 @@ export function SessionMenu({
 				</DropdownMenu.Trigger>
 				<DropdownMenu.Portal>
 					<DropdownMenu.Content
-						className="menu-content"
+						className="menu-content sketch"
 						align="end"
 						sideOffset={8}
 					>
@@ -121,7 +121,7 @@ export function SessionMenu({
 				<Dialog.Portal>
 					<Dialog.Overlay className="dialog-overlay" />
 					<Dialog.Content
-						className="dialog-content"
+						className="dialog-content sketch sketch-draw"
 						onCloseAutoFocus={(event) => {
 							event.preventDefault();
 							trigger.current?.focus();

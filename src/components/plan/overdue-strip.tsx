@@ -45,7 +45,7 @@ export function OverdueStrip() {
 		);
 	if (query.isError)
 		return (
-			<div className="plan-error">
+			<div className="plan-error sketch sketch-danger">
 				<p>Couldn't load overdue work</p>
 				<Button variant="outline" onClick={() => void query.refetch()}>
 					Retry overdue
@@ -57,7 +57,7 @@ export function OverdueStrip() {
 	return (
 		<>
 			{sessions.length + todos.length > 0 && (
-				<section className="overdue-strip">
+				<section className="overdue-strip sketch sketch-danger">
 					<div className="page-heading">
 						<details>
 							<summary>Overdue: {sessions.length + todos.length}</summary>
@@ -71,12 +71,18 @@ export function OverdueStrip() {
 							</ul>
 						</details>
 						<MutationButton
+							variant="outline"
 							disabled={busy || !sessions.length}
 							onClick={replan}
 						>
 							{busy ? "Re-planning…" : "Re-plan"}
 						</MutationButton>
 					</div>
+					{sessions.length > 0 && (
+						<p className="margin-note">
+							Re-plan moves unfinished sessions onto the days you have left
+						</p>
+					)}
 				</section>
 			)}
 			{error && (
@@ -85,7 +91,7 @@ export function OverdueStrip() {
 				</p>
 			)}
 			{result && (
-				<section className="replan-summary" aria-label="Re-plan result">
+				<section className="replan-summary sketch" aria-label="Re-plan result">
 					<p>
 						{formatHours(
 							result.plans.reduce((sum, plan) => sum + plan.movedMinutes, 0),

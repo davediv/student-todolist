@@ -1,0 +1,353 @@
+/* App shell: the binding strip (sidebar or bottom bar) and the drawing sheet. */
+.app-shell {
+	min-height: 100dvh;
+}
+
+.brand {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	padding: var(--space-5) var(--space-5) 0;
+}
+
+.brand-name {
+	font: var(--type-heading);
+}
+
+.brand-mark {
+	flex: none;
+	width: 2.25rem;
+	height: 2.25rem;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.brand-mark-highlight {
+	stroke: var(--color-highlight-band);
+	stroke-width: 8;
+}
+
+.brand-mark-tick {
+	stroke-width: 3;
+}
+
+#main {
+	max-width: var(--content-width);
+	margin: 0 auto;
+	padding: var(--space-6) var(--space-5)
+		calc(var(--bottom-nav-height) + var(--space-16));
+	outline: none;
+}
+
+/* Bottom bar on phones: the sheet's drafting border runs along its top edge. */
+.app-nav {
+	position: fixed;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: var(--z-nav);
+	display: flex;
+	justify-content: space-around;
+	padding: var(--space-2) var(--space-2)
+		calc(var(--space-2) + env(safe-area-inset-bottom));
+	background:
+		linear-gradient(var(--color-stroke), var(--color-stroke)) 0 0 / 100%
+		var(--stroke-width) no-repeat,
+		linear-gradient(var(--color-stroke-soft), var(--color-stroke-soft)) 0 5px /
+		100% 1px no-repeat,
+		var(--color-surface);
+}
+
+.app-nav a {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 2px;
+	min-width: 4.25rem;
+	min-height: 3.5rem;
+	padding: var(--space-1) var(--space-2);
+	font: var(--type-nav);
+	color: var(--color-content-muted);
+	transition: color var(--duration-fast) var(--ease-out);
+}
+
+.app-nav svg {
+	width: 1.5rem;
+	height: 1.5rem;
+	stroke-width: 2;
+}
+
+.app-nav a[aria-current="page"],
+.app-nav a:active {
+	color: var(--color-content);
+}
+
+/* The current page is circled in pencil, the loop overshooting where it closes. */
+.app-nav a[aria-current="page"]::before {
+	content: "";
+	position: absolute;
+	inset: -1px -2px;
+	background: var(--color-stroke);
+	mask: var(--mask-circle) 0 0 / 100% 100% no-repeat;
+	pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+	.app-nav a:hover {
+		color: var(--color-content);
+	}
+}
+
+@media (forced-colors: active) {
+	.app-nav a[aria-current="page"]::before {
+		background: CanvasText;
+		forced-color-adjust: none;
+	}
+}
+
+/* Keep focused controls clear of the fixed bottom bar. */
+@media (max-width: 47.99rem) {
+	html {
+		scroll-padding-bottom: calc(var(--bottom-nav-height) + var(--space-4));
+	}
+}
+
+.title-block {
+	display: none;
+}
+
+@media (min-width: 48rem) {
+	.app-shell {
+		padding-left: var(--sidebar-width);
+	}
+
+	/* The binding strip: plain paper, closed by a heavy and a light rule. */
+	.app-shell::before {
+		content: "";
+		position: fixed;
+		inset: 0 auto 0 0;
+		z-index: var(--z-nav);
+		width: var(--sidebar-width);
+		background:
+			linear-gradient(var(--color-stroke), var(--color-stroke)) 100% 0 /
+			var(--stroke-width) 100% no-repeat,
+			linear-gradient(var(--color-stroke-soft), var(--color-stroke-soft))
+			calc(100% - 5px) 0 / 1px 100% no-repeat,
+			var(--color-surface);
+	}
+
+	.brand {
+		position: fixed;
+		top: 0;
+		left: 0;
+		z-index: var(--z-nav);
+		width: var(--sidebar-width);
+		padding: var(--space-8) var(--space-6) var(--space-4);
+	}
+
+	.app-nav {
+		top: 6.5rem;
+		right: auto;
+		width: var(--sidebar-width);
+		flex-direction: column;
+		justify-content: flex-start;
+		gap: var(--space-2);
+		padding: var(--space-4) var(--space-5);
+		background: none;
+	}
+
+	.app-nav a {
+		flex-direction: row;
+		justify-content: flex-start;
+		gap: var(--space-3);
+		width: fit-content;
+		min-width: 0;
+		min-height: var(--target-size);
+		padding: var(--space-1) var(--space-4) var(--space-1) var(--space-3);
+		font: var(--type-subheading);
+	}
+
+	.app-nav svg {
+		width: 1.25rem;
+		height: 1.25rem;
+	}
+
+	.app-nav a[aria-current="page"]::before {
+		inset: -2px -4px;
+	}
+
+	/* A drafting title block closes the strip: sheet, drawn by, date. */
+	.title-block {
+		position: fixed;
+		bottom: var(--space-6);
+		left: var(--space-5);
+		z-index: var(--z-nav);
+		display: grid;
+		width: calc(var(--sidebar-width) - var(--space-10));
+		border: var(--stroke-width) solid var(--color-stroke);
+	}
+
+	.title-block p {
+		display: grid;
+		grid-template-columns: 5.75rem minmax(0, 1fr);
+		align-items: center;
+		margin: 0;
+		padding-right: var(--space-2);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.title-block p + p {
+		border-top: 1px solid var(--color-stroke-soft);
+	}
+
+	.title-block span {
+		margin-right: var(--space-2);
+		padding: var(--space-1) var(--space-2);
+		color: var(--color-content-muted);
+		border-right: 1px solid var(--color-stroke-soft);
+	}
+
+	#main {
+		padding: var(--space-16) var(--space-8) var(--space-20);
+	}
+}
+
+@media (min-width: 64rem) {
+	#main {
+		padding-inline: var(--space-12);
+	}
+}
+
+@media (min-width: 48rem) and (max-height: 34rem) {
+	.title-block {
+		display: none;
+	}
+}
+
+/* Sign-in and other standalone sheets: a cover sheet with crop marks. */
+.sign-in,
+.route-state {
+	display: grid;
+	place-items: center;
+	gap: var(--space-8);
+	min-height: 100dvh;
+	padding: var(--space-8) var(--space-5);
+}
+
+.cover-sheet {
+	position: relative;
+	width: min(26rem, 100%);
+	padding: var(--space-12) var(--space-8) var(--space-8);
+	text-align: center;
+}
+
+/* Crop marks sit just outside the sheet's corners. */
+.crop-marks {
+	position: relative;
+	padding: var(--space-5);
+	--crop: var(--color-stroke-soft);
+	background:
+		linear-gradient(var(--crop), var(--crop)) 0 0 / 0.875rem 1px no-repeat,
+		linear-gradient(var(--crop), var(--crop)) 0 0 / 1px 0.875rem no-repeat,
+		linear-gradient(var(--crop), var(--crop)) 100% 0 / 0.875rem 1px no-repeat,
+		linear-gradient(var(--crop), var(--crop)) 100% 0 / 1px 0.875rem no-repeat,
+		linear-gradient(var(--crop), var(--crop)) 0 100% / 0.875rem 1px no-repeat,
+		linear-gradient(var(--crop), var(--crop)) 0 100% / 1px 0.875rem no-repeat,
+		linear-gradient(var(--crop), var(--crop)) 100% 100% / 0.875rem 1px no-repeat,
+		linear-gradient(var(--crop), var(--crop)) 100% 100% / 1px 0.875rem no-repeat;
+}
+
+.cover-sheet .brand-mark {
+	width: 3.5rem;
+	height: 3.5rem;
+	margin: 0 auto var(--space-5);
+}
+
+.cover-sheet .page-title {
+	margin-inline: auto;
+}
+
+.cover-sheet p {
+	margin: var(--space-4) 0 var(--space-6);
+	font: var(--type-prose);
+	color: var(--color-content-muted);
+}
+
+.cover-sheet .btn {
+	width: 100%;
+}
+
+.cover-sheet .sign-in-error {
+	padding: var(--space-3);
+	font: var(--type-body-strong);
+	color: var(--color-danger);
+	border: var(--stroke-width) dashed var(--color-danger);
+	border-radius: var(--radius-drawn);
+}
+
+.cover-sheet .title-stamp {
+	margin: var(--space-6) 0 0;
+	color: var(--color-content-muted);
+}
+
+.sign-in-art {
+	width: min(30rem, 100%);
+	margin: 0;
+}
+
+/* Lift the scan's paper to white so multiply drops it, then feather the edges. */
+.sign-in-art img {
+	display: block;
+	width: 100%;
+	height: auto;
+	filter: brightness(1.08) contrast(1.12);
+	mix-blend-mode: multiply;
+	mask:
+		radial-gradient(closest-side, #000 72%, transparent) center / 100% 100%
+		no-repeat;
+}
+
+@media (prefers-color-scheme: dark) {
+	.sign-in-art img {
+		filter: brightness(1.08) contrast(1.12) invert(1) hue-rotate(180deg);
+		mix-blend-mode: screen;
+	}
+}
+
+@media (max-width: 47.99rem) {
+	.sign-in-art {
+		display: none;
+	}
+}
+
+@media (min-width: 64rem) {
+	.sign-in {
+		grid-template-columns: minmax(0, 30rem) minmax(0, 28rem);
+		justify-content: center;
+		gap: var(--space-16);
+	}
+}
+
+/* First run: one drawn sheet holding the week. */
+.welcome-page {
+	max-width: 44rem;
+	margin: 0 auto;
+	padding: var(--space-16) var(--space-5);
+}
+
+.welcome-sheet {
+	padding: var(--space-6);
+}
+
+/* A route that failed to load: a red-pen note, centred when it stands alone. */
+.route-error {
+	max-width: 40rem;
+	margin: var(--space-12) auto;
+}

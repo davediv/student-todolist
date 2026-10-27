@@ -1,0 +1,532 @@
+/* Page header: margin note, hand title, and the primary action on one line. */
+.page-heading {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: var(--space-3) var(--space-4);
+	margin-bottom: var(--space-8);
+}
+
+.page-heading:has(+ .page-description) {
+	margin-bottom: var(--space-1);
+}
+
+.page-heading .page-date {
+	margin-bottom: 0;
+}
+
+.page-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-3);
+	margin-bottom: var(--space-3);
+}
+
+/* Day plate: a drawn frame whose load is measured with a dimension line. */
+.day-card {
+	margin-bottom: var(--space-6);
+	padding: var(--space-5) var(--space-5) var(--space-3);
+	overflow-wrap: break-word;
+}
+
+.day-heading {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	margin-bottom: var(--space-2);
+}
+
+.day-heading h3,
+.day-card > h3 {
+	flex: none;
+	font: var(--type-subheading);
+}
+
+.day-card > h3 {
+	margin-bottom: var(--space-2);
+}
+
+/* Dimension line: |———| 3h / 3h, with tick ends and a mono measure. */
+.day-total {
+	display: flex;
+	flex: 1;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: var(--space-1) var(--space-2);
+	margin: 0;
+	font: var(--type-label);
+	letter-spacing: var(--tracking-label);
+	color: var(--color-content-muted);
+	font-variant-numeric: tabular-nums;
+}
+
+.day-total::before {
+	content: "";
+	flex: 1;
+	min-width: 2.5rem;
+	height: 0.5625rem;
+	--dim: var(--color-stroke-soft);
+	background:
+		linear-gradient(var(--dim), var(--dim)) 0 50% / 100% 1px no-repeat,
+		linear-gradient(var(--dim), var(--dim)) 0 0 / 1px 100% no-repeat,
+		linear-gradient(var(--dim), var(--dim)) 100% 0 / 1px 100% no-repeat;
+}
+
+.day-total.over-limit {
+	color: var(--color-danger);
+}
+
+.day-total.over-limit::before {
+	--dim: var(--color-danger);
+}
+
+.day-total svg {
+	width: 0.875rem;
+	height: 0.875rem;
+	stroke-width: 1.75;
+	vertical-align: -2px;
+}
+
+.day-off {
+	margin: 0 0 var(--space-2);
+	font: var(--type-note);
+	color: var(--color-content-muted);
+}
+
+.day-empty {
+	margin: var(--space-1) 0 var(--space-3);
+	color: var(--color-content-muted);
+}
+
+/* Empty days are drawn in hidden line and take a single row. */
+.day-card.is-empty {
+	padding-block: var(--space-3) var(--space-1);
+}
+
+.day-card.is-empty .day-heading h3 {
+	color: var(--color-content-muted);
+}
+
+.day-card.is-empty .day-heading {
+	margin-bottom: 0;
+}
+
+.day-card.is-empty .day-empty {
+	margin-top: 0;
+}
+
+/* Rows: tick, type, title with mono meta, measure, actions. */
+.plan-sessions,
+.session-list,
+.deadline-list,
+.days-off-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+/* Tracing paper for the secondary list. */
+.anytime-card .plan-sessions {
+	margin-top: var(--space-1);
+}
+
+.session-row {
+	position: relative;
+	padding: var(--space-3) 0;
+}
+
+.session-row + .session-row::before,
+.session-list li + li::before,
+.days-off-list li + li::before {
+	content: "";
+	position: absolute;
+	inset: 0 0 auto;
+	height: 1px;
+	background: linear-gradient(
+		90deg,
+		transparent,
+		var(--color-stroke-soft) 0.5rem,
+		var(--color-stroke-soft) 72%,
+		color-mix(in srgb, var(--color-stroke-soft) 55%, transparent) 90%,
+		transparent
+	);
+}
+
+.session-main {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	min-width: 0;
+}
+
+.session-main > svg {
+	flex: none;
+	width: 1.25rem;
+	height: 1.25rem;
+	stroke-width: 1.75;
+	color: var(--color-content-muted);
+}
+
+.session-copy {
+	display: grid;
+	flex: 1;
+	gap: 2px;
+	min-width: 0;
+}
+
+.session-title {
+	font: var(--type-body);
+	overflow-wrap: break-word;
+}
+
+a.session-title {
+	text-decoration: underline;
+	text-decoration-color: transparent;
+	text-underline-offset: 0.2em;
+	transition: text-decoration-color var(--duration-fast) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+	a.session-title:hover {
+		text-decoration-color: currentColor;
+	}
+}
+
+.session-meta {
+	margin: 0;
+	color: var(--color-content-muted);
+}
+
+.session-main > strong {
+	font: var(--type-figure);
+	font-variant-numeric: tabular-nums;
+}
+
+/* Ticked work is struck through (inline, so it holds without CSS) and greyed. */
+.session-row.is-ticked .session-title {
+	color: var(--color-content-muted);
+}
+
+.session-row.is-ticked > .session-main > strong {
+	color: var(--color-content-muted);
+}
+
+/* Pencilled in: the tick is saving. */
+.session-main[aria-busy="true"] input[type="checkbox"] {
+	border-style: dashed;
+	border-color: var(--color-stroke-strong);
+}
+
+.session-row > .field-error {
+	padding-left: calc(1.5rem + var(--space-3));
+}
+
+/* Overdue: a red-pen correction above the plan. */
+.overdue-strip {
+	margin-bottom: var(--space-8);
+	padding: var(--space-4) var(--space-5);
+}
+
+.overdue-strip > .page-heading {
+	flex-wrap: nowrap;
+	align-items: flex-start;
+	margin: 0;
+}
+
+.overdue-strip details {
+	flex: 1;
+	min-width: 0;
+}
+
+.overdue-strip summary {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	width: fit-content;
+	min-height: var(--target-size);
+	font: var(--type-subheading);
+	color: var(--color-danger);
+	list-style: none;
+}
+
+.overdue-strip summary::-webkit-details-marker {
+	display: none;
+}
+
+.overdue-strip summary::before,
+.done-deadlines summary::before {
+	content: "";
+	flex: none;
+	width: 0.75rem;
+	height: 0.75rem;
+	background: currentColor;
+	clip-path: polygon(15% 5%, 95% 50%, 15% 95%);
+	transition: rotate var(--duration-fast) var(--ease-out);
+}
+
+.overdue-strip summary:active,
+.done-deadlines summary:active {
+	opacity: 0.75;
+}
+
+.overdue-strip details[open] summary::before,
+.done-deadlines[open] summary::before {
+	rotate: 90deg;
+}
+
+.overdue-strip .margin-note {
+	margin: 0;
+	font: var(--type-note-sm);
+}
+
+.overdue-strip .plan-sessions {
+	margin-top: var(--space-2);
+}
+
+.replan-summary,
+.plan-error {
+	margin-bottom: var(--space-6);
+	padding: var(--space-5);
+}
+
+.replan-summary p {
+	margin: 0 0 var(--space-2);
+	font: var(--type-prose);
+}
+
+.plan-error p,
+.plan-error h2 {
+	margin: 0 0 var(--space-3);
+	font: var(--type-body-strong);
+	color: var(--color-danger);
+}
+
+/* Upcoming: a ruled fortnight. */
+.week-rule {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	margin: var(--space-10) 0 var(--space-5);
+	color: var(--color-content-muted);
+}
+
+.week-rule::before,
+.week-rule::after {
+	content: "";
+	flex: 1;
+	height: 1px;
+	background: repeating-linear-gradient(
+		90deg,
+		var(--color-stroke-soft) 0 var(--dash),
+		transparent var(--dash) var(--dash-period)
+	);
+}
+
+.week-rule::before {
+	flex: 0 0 1.5rem;
+}
+
+.upcoming-days .day-card {
+	margin-bottom: var(--space-4);
+}
+
+.upcoming-days .day-card.is-empty {
+	margin-bottom: var(--space-3);
+}
+
+@media (min-width: 64rem) {
+	.upcoming-days .day-card {
+		display: grid;
+		grid-template-columns: 9rem minmax(0, 1fr);
+		column-gap: var(--space-6);
+		align-items: start;
+		padding: var(--space-4) var(--space-5) var(--space-2);
+	}
+
+	.upcoming-days .day-heading {
+		grid-column: 1;
+		grid-row: 1;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-1);
+		margin: var(--space-1) 0 0;
+	}
+
+	.upcoming-days .day-total {
+		flex: none;
+		justify-content: flex-start;
+	}
+
+	.upcoming-days .day-total::before {
+		flex: 0 0 1.25rem;
+		min-width: 0;
+	}
+
+	.upcoming-days .day-off {
+		grid-column: 1;
+		grid-row: 2;
+	}
+
+	.upcoming-days .plan-sessions,
+	.upcoming-days .day-empty {
+		grid-column: 2;
+		grid-row: 1 / span 2;
+	}
+
+	/* Empty days: date, a note, and the measure on one line. */
+	.upcoming-days .day-card.is-empty {
+		display: flex;
+		align-items: center;
+		gap: var(--space-4);
+		padding-block: var(--space-2);
+	}
+
+	.upcoming-days .day-card.is-empty .day-heading {
+		display: contents;
+	}
+
+	.upcoming-days .day-card.is-empty h3 {
+		width: 9rem;
+		margin-right: var(--space-2);
+	}
+
+	.upcoming-days .day-card.is-empty :is(.day-empty, .day-off) {
+		flex: 1;
+		order: 1;
+		margin: 0;
+	}
+
+	.upcoming-days .day-card.is-empty .day-total {
+		order: 2;
+	}
+}
+
+/* Placeholder: a wireframe box crossed through, with a hand note. */
+.empty-state {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 17rem;
+	margin-bottom: var(--space-6);
+	padding: var(--space-10) var(--space-6);
+	text-align: center;
+}
+
+.empty-symbol {
+	width: 4.5rem;
+	height: 3.25rem;
+	margin-bottom: var(--space-5);
+	--x: var(--color-stroke-soft);
+	background:
+		linear-gradient(
+			to top right,
+			transparent calc(50% - 0.75px),
+			var(--x) calc(50% - 0.75px) calc(50% + 0.75px),
+			transparent calc(50% + 0.75px)
+		),
+		linear-gradient(
+			to bottom right,
+			transparent calc(50% - 0.75px),
+			var(--x) calc(50% - 0.75px) calc(50% + 0.75px),
+			transparent calc(50% + 0.75px)
+		);
+	border: var(--stroke-width) solid var(--color-stroke);
+	border-radius: var(--radius-drawn);
+}
+
+.empty-state h3 {
+	margin-bottom: var(--space-2);
+	font: var(--type-heading);
+}
+
+.empty-state p {
+	max-width: 22rem;
+	margin: 0;
+	font: var(--type-prose);
+	color: var(--color-content-muted);
+}
+
+/* Loading: dashed placeholders with a pencil line drawing across. */
+.skeleton-rows {
+	display: grid;
+	gap: var(--space-4);
+	width: 100%;
+	max-width: var(--content-width);
+	margin: 0 auto;
+	padding: var(--space-2) 0 var(--space-8);
+}
+
+.skeleton-rows > div {
+	height: 4.5rem;
+	overflow: clip;
+	background:
+		repeating-linear-gradient(
+			90deg,
+			var(--color-stroke-soft) 0 var(--dash),
+			transparent var(--dash) var(--dash-period)
+		)
+		0 0 / 100% 1px no-repeat,
+		repeating-linear-gradient(
+			90deg,
+			var(--color-stroke-soft) 0 var(--dash),
+			transparent var(--dash) var(--dash-period)
+		)
+		0 100% / 100% 1px no-repeat,
+		var(--color-surface-tracing);
+}
+
+.skeleton-rows > div::after {
+	content: "";
+	display: block;
+	width: 60%;
+	height: var(--stroke-width);
+	margin: 2.2rem 0 0 var(--space-5);
+	background: var(--color-stroke-soft);
+	transform-origin: left;
+	animation: pencil-line var(--duration-loop) var(--ease-out) infinite;
+}
+
+.skeleton-rows > div:nth-of-type(2)::after {
+	width: 42%;
+	animation-delay: calc(var(--stagger) * 3);
+}
+
+.skeleton-rows > div:nth-of-type(3)::after {
+	width: 52%;
+	animation-delay: calc(var(--stagger) * 6);
+}
+
+@keyframes pencil-line {
+	from {
+		transform: scaleX(0);
+	}
+	70%,
+	to {
+		transform: scaleX(1);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.skeleton-rows > div::after {
+		animation: none;
+	}
+}
+
+/* Status notes drawn in hidden line: offline and saved plans. */
+.offline-banner,
+.saved-plan-notice {
+	display: block;
+	margin-bottom: var(--space-6);
+	padding: var(--space-3) var(--space-4);
+	font: var(--type-body-sm);
+	color: var(--color-content-muted);
+}
+
+.offline-banner strong {
+	margin-right: var(--space-1);
+	font-weight: 700;
+	color: var(--color-content);
+}

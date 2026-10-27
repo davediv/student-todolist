@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import { Dialog } from "radix-ui";
+import type { CSSProperties } from "react";
 import { Button } from "#/components/ui/button";
 import { formatDate } from "#/lib/format";
 import { useOnline } from "#/lib/offline";
@@ -16,7 +17,12 @@ function hours(week: WeekStats) {
 function WeekBar({ week, label }: { week: WeekStats; label: string }) {
 	return (
 		<span
-			className="weekly-progress-track"
+			className="meter meter-week"
+			style={
+				{
+					"--meter-units": Math.min(Math.max(week.plannedMinutes / 60, 1), 60),
+				} as CSSProperties
+			}
 			role="progressbar"
 			aria-label={label}
 			aria-valuemin={0}
@@ -25,7 +31,7 @@ function WeekBar({ week, label }: { week: WeekStats; label: string }) {
 			aria-valuetext={`${week.doneMinutes / 60} of ${week.plannedMinutes / 60} hours done`}
 		>
 			<span
-				className="weekly-progress-fill"
+				className="meter-fill"
 				style={{
 					width: `${week.plannedMinutes ? (week.doneMinutes / week.plannedMinutes) * 100 : 0}%`,
 				}}
@@ -45,15 +51,19 @@ export function WeeklyCard({ today }: { today: string }) {
 			: undefined);
 	if (!data && !online)
 		return (
-			<p className="weekly-card">
+			<p className="weekly-card sketch sketch-dashed">
 				No saved weekly progress. Connect to load it.
 			</p>
 		);
 	if (!data && query.isPending)
-		return <output className="weekly-card">Loading weekly progress…</output>;
+		return (
+			<output className="weekly-card sketch sketch-dashed">
+				Loading weekly progress…
+			</output>
+		);
 	if (query.isError && !data)
 		return (
-			<div className="weekly-card" role="alert">
+			<div className="weekly-card sketch sketch-danger" role="alert">
 				<p>Couldn't load weekly progress</p>
 				<Button variant="outline" onClick={() => void query.refetch()}>
 					Retry weekly progress
@@ -72,7 +82,7 @@ export function WeeklyCard({ today }: { today: string }) {
 			<Dialog.Trigger asChild>
 				<button
 					type="button"
-					className="weekly-card weekly-card-trigger"
+					className="weekly-card weekly-card-trigger sketch"
 					aria-label={`${currentLabel} ${hours(current)}. Show last 4 weeks`}
 				>
 					<span className="weekly-card-heading">
@@ -93,7 +103,7 @@ export function WeeklyCard({ today }: { today: string }) {
 			</Dialog.Trigger>
 			<Dialog.Portal>
 				<Dialog.Overlay className="dialog-overlay" />
-				<Dialog.Content className="dialog-content weekly-history">
+				<Dialog.Content className="dialog-content weekly-history sketch sketch-draw">
 					<Dialog.Title>Last 4 weeks</Dialog.Title>
 					<Dialog.Description>
 						Hours done against planned, Monday to Sunday.

@@ -40,8 +40,8 @@ function Today() {
 			<p className="eyebrow">A little progress, every day</p>
 			<div className="page-heading">
 				<div>
-					<h2>Today</h2>
-					<p className="page-description">
+					<h2 className="page-title">Today</h2>
+					<p className="page-date">
 						<time dateTime={today}>
 							{formatDate(today, {
 								weekday: "long",
@@ -59,7 +59,7 @@ function Today() {
 					</DropdownMenu.Trigger>
 					<DropdownMenu.Portal>
 						<DropdownMenu.Content
-							className="menu-content"
+							className="menu-content sketch"
 							align="end"
 							sideOffset={8}
 						>
@@ -102,7 +102,7 @@ function Today() {
 			) : pending ? (
 				<SkeletonRows />
 			) : query.isError && !data ? (
-				<div className="plan-error" role="alert">
+				<div className="plan-error sketch sketch-danger" role="alert">
 					<p>Couldn't load your plan — retry</p>
 					<Button variant="outline" onClick={() => void query.refetch()}>
 						Retry
@@ -121,7 +121,10 @@ function Today() {
 				</>
 			)}
 			{anytime.length > 0 && (
-				<section className="day-card" aria-label="Anytime">
+				<section
+					className="day-card sketch sketch-tracing anytime-card"
+					aria-label="Anytime"
+				>
 					<h3>Anytime</h3>
 					<ul className="plan-sessions">
 						{anytime.map((todo) => (

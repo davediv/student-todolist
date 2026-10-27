@@ -22,7 +22,7 @@ export function SavedPlanNotice({ days }: { days: PlanDay[] }) {
 		"en-GB",
 	);
 	return (
-		<p className="page-description">
+		<p className="saved-plan-notice sketch sketch-dashed">
 			Saved plan · {first}
 			{first === last ? "" : ` – ${last}`}. Connect to update your plan.
 		</p>

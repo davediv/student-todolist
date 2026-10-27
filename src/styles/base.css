@@ -1,0 +1,233 @@
+/* The sheet: cartridge paper with a construction grid under every page. */
+html {
+	background-color: var(--color-surface);
+}
+
+body {
+	min-height: 100dvh;
+	margin: 0;
+	font: var(--type-body);
+	color: var(--color-content);
+	background-color: var(--color-surface);
+	background-image:
+		var(--grain-image),
+		linear-gradient(var(--color-guide) 1px, transparent 1px),
+		linear-gradient(90deg, var(--color-guide) 1px, transparent 1px);
+	background-size:
+		180px 180px,
+		var(--grid-size) var(--grid-size),
+		var(--grid-size) var(--grid-size);
+	font-optical-sizing: auto;
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizeLegibility;
+}
+
+button,
+a,
+input,
+select,
+textarea,
+summary {
+	-webkit-tap-highlight-color: transparent;
+}
+
+button,
+summary {
+	cursor: pointer;
+}
+
+button:disabled {
+	cursor: not-allowed;
+}
+
+a {
+	color: inherit;
+	text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+	margin: 0;
+	text-wrap: balance;
+}
+
+p {
+	text-wrap: pretty;
+}
+
+::selection {
+	background: var(--color-highlight-band);
+	color: var(--color-content);
+}
+
+:focus-visible {
+	outline: 2px solid var(--color-focus);
+	outline-offset: 3px;
+}
+
+.skip-link {
+	position: fixed;
+	top: -100px;
+	left: var(--space-4);
+	z-index: var(--z-skip);
+	padding: var(--space-3) var(--space-4);
+	font: var(--type-button);
+	background: var(--color-surface-raised);
+	border: var(--stroke-width) solid var(--color-stroke);
+}
+
+.skip-link:focus {
+	top: var(--space-4);
+}
+
+/* Page title: the hand face, underlined twice in pencil. */
+.page-title {
+	position: relative;
+	width: fit-content;
+	max-width: 100%;
+	margin: 0 0 var(--space-3);
+	padding-bottom: 0.28em;
+	font: var(--type-title);
+	overflow-wrap: break-word;
+}
+
+.page-title::after {
+	content: "";
+	position: absolute;
+	inset: auto -0.15em 0 -0.05em;
+	height: 0.3em;
+	background: var(--color-stroke);
+	mask: var(--mask-underline) 0 0 / 100% 100% no-repeat;
+}
+
+.page-title.is-drawn::after {
+	animation: underline-draw var(--duration-draw) var(--ease-out)
+		var(--duration-enter) both;
+}
+
+@keyframes underline-draw {
+	from {
+		clip-path: inset(0 100% 0 0);
+	}
+	to {
+		clip-path: inset(0);
+	}
+}
+
+/* Eyebrows become margin notes, with an arrow toward what they describe. */
+.eyebrow {
+	display: flex;
+	align-items: flex-end;
+	gap: var(--space-1);
+	width: fit-content;
+	margin: 0 0 var(--space-1);
+	font: var(--type-note);
+	color: var(--color-content-muted);
+	rotate: -1.5deg;
+	transform-origin: left bottom;
+}
+
+.eyebrow::after {
+	content: "";
+	flex: none;
+	width: 1.75rem;
+	height: 1.125rem;
+	translate: 0 0.4rem;
+	background: currentColor;
+	mask: var(--mask-arrow) center / contain no-repeat;
+}
+
+.page-description {
+	max-width: var(--measure);
+	margin: 0 0 var(--space-8);
+	font: var(--type-prose);
+	color: var(--color-content-muted);
+}
+
+/* Mono lettering: every measure, date, and label shares one face, size, and tracking. */
+.page-date,
+.day-empty,
+.session-meta,
+.week-rule,
+.offline-banner strong,
+.cover-sheet .title-stamp,
+.title-block,
+.deadline-due,
+.deadline-type,
+.back-link,
+.detail-spec span,
+.detail-notes h3,
+.preview-label,
+.session-list li,
+.days-off-list li,
+.weekly-history-list h3 {
+	font: var(--type-label);
+	letter-spacing: var(--tracking-label);
+	text-transform: uppercase;
+}
+
+.page-date {
+	color: var(--color-content-muted);
+	margin: 0 0 var(--space-8);
+}
+
+/* A hand annotation with a short leader line. */
+.margin-note,
+.shortfall {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	margin: var(--space-2) 0;
+	font: var(--type-note);
+	color: var(--color-content-muted);
+}
+
+.margin-note::before,
+.shortfall::before {
+	content: "";
+	flex: none;
+	width: 1.25rem;
+	height: 1px;
+	background: currentColor;
+}
+
+.shortfall {
+	color: var(--color-danger);
+}
+
+.field-error {
+	margin: var(--space-1) 0 0;
+	font: var(--type-body-sm);
+	color: var(--color-danger);
+}
+
+@media (min-width: 48rem) {
+	.page-title {
+		font: var(--type-display);
+	}
+}
+
+/* biome-ignore-start lint/complexity/noImportantStyles: these two switches must beat every component rule. */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	::before,
+	::after {
+		animation-duration: 0.01ms !important;
+		animation-delay: 0ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
+/* Snap, don't smear, when the system theme changes. */
+.theme-switching,
+.theme-switching *,
+.theme-switching ::before,
+.theme-switching ::after {
+	transition: none !important;
+}
+/* biome-ignore-end lint/complexity/noImportantStyles: end of the global switches. */

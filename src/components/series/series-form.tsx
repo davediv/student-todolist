@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FormField } from "#/components/shared/form-field";
 import { MutationButton } from "#/components/shared/mutation-button";
 import { SkeletonRows } from "#/components/shared/skeleton";
@@ -50,6 +50,12 @@ export function SeriesForm({
 	const online = useOnline();
 	const [notice, setNotice] = useState("");
 	const [refreshing, setRefreshing] = useState(false);
+	const previewHeading = useRef<HTMLHeadingElement>(null);
+	// The trigger that opened this form is hidden while it is open, so focus moves in.
+	useEffect(() => {
+		if (preview) previewHeading.current?.focus();
+		else if (!refreshing) document.getElementById("series-title")?.focus();
+	}, [preview, refreshing]);
 	function change<K extends keyof SeriesInput>(name: K, value: SeriesInput[K]) {
 		setValues((current) => ({ ...current, [name]: value }));
 	}
@@ -97,16 +103,18 @@ export function SeriesForm({
 	}
 	if (refreshing)
 		return (
-			<section className="deadline-form">
+			<section className="deadline-form sketch sketch-dashed">
 				<output>{notice}</output>
 				<SkeletonRows />
 			</section>
 		);
 	if (preview)
 		return (
-			<section className="deadline-form series-preview">
+			<section className="deadline-form series-preview is-draft sketch sketch-dashed sketch-draw">
 				<p className="eyebrow">A weekly rhythm</p>
-				<h3>Recurring deadline preview</h3>
+				<h3 ref={previewHeading} tabIndex={-1}>
+					Recurring deadline preview
+				</h3>
 				<p className="preview-title">{values.title}</p>
 				{notice && <output>{notice}</output>}
 				{preview.occurrences.length ? (
@@ -185,7 +193,7 @@ export function SeriesForm({
 		);
 	return (
 		<form
-			className="deadline-form"
+			className="deadline-form sketch"
 			noValidate
 			onSubmit={(event) => {
 				event.preventDefault();

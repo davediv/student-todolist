@@ -58,7 +58,7 @@ export function ReplanAllPreview({
 		}
 	}
 	return (
-		<section className="deadline-form replan-all-preview">
+		<section className="deadline-form replan-all-preview is-draft sketch sketch-dashed sketch-draw">
 			<p className="eyebrow">Soonest due, first</p>
 			<h3>Re-plan all by due date</h3>
 			<p>Ticked sessions stay in place. Review the new plan before saving.</p>
@@ -76,7 +76,7 @@ export function ReplanAllPreview({
 							)}
 							{plan.keptSessions.length > 0 && (
 								<>
-									<h5>Kept sessions</h5>
+									<h5 className="preview-label">Kept sessions</h5>
 									<ul className="session-list">
 										{plan.keptSessions.map((session) => (
 											<li key={session.id}>
@@ -87,7 +87,7 @@ export function ReplanAllPreview({
 									</ul>
 								</>
 							)}
-							<h5>New sessions</h5>
+							<h5 className="preview-label">New sessions</h5>
 							{plan.sessions.length ? (
 								<ul className="session-list">
 									{plan.sessions.map((session) => (

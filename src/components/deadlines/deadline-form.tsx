@@ -157,7 +157,7 @@ export function DeadlineForm({
 	}
 	if (refreshing)
 		return (
-			<section className="deadline-form">
+			<section className="deadline-form sketch sketch-dashed">
 				<output>{notice}</output>
 				<SkeletonRows />
 			</section>
@@ -172,7 +172,7 @@ export function DeadlineForm({
 		);
 	if (preview)
 		return (
-			<section className="deadline-form">
+			<section className="deadline-form is-draft sketch sketch-dashed sketch-draw">
 				<p className="eyebrow">A day-sized plan</p>
 				<h3 ref={previewHeading} tabIndex={-1}>
 					Plan preview
@@ -196,7 +196,7 @@ export function DeadlineForm({
 				)}
 				{preview.keptSessions && preview.keptSessions.length > 0 && (
 					<>
-						<h4>Kept sessions</h4>
+						<h4 className="preview-label">Kept sessions</h4>
 						<ul className="session-list">
 							{preview.keptSessions.map((session) => (
 								<li key={session.id}>
@@ -214,7 +214,7 @@ export function DeadlineForm({
 						</ul>
 					</>
 				)}
-				{deadlineId && <h4>New sessions</h4>}
+				{deadlineId && <h4 className="preview-label">New sessions</h4>}
 				{preview.sessions.length ? (
 					<ul className="session-list">
 						{preview.sessions.map((session) => (
@@ -262,7 +262,7 @@ export function DeadlineForm({
 		);
 	return (
 		<form
-			className="deadline-form"
+			className="deadline-form sketch"
 			noValidate
 			onSubmit={(event) => {
 				event.preventDefault();

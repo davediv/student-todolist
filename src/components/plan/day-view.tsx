@@ -5,9 +5,12 @@ import { formatDate, formatHours } from "#/lib/format";
 import { SessionRow } from "./session-row";
 
 export function DayView({ day, heading }: { day: PlanDay; heading?: string }) {
+	const empty = !day.sessions.length && !day.todos?.length;
 	return (
 		<section
-			className="day-card"
+			className={
+				empty ? "day-card sketch sketch-dashed is-empty" : "day-card sketch"
+			}
 			aria-label={
 				heading ??
 				formatDate(day.date, { weekday: "long", month: "long", day: "numeric" })
@@ -37,7 +40,9 @@ export function DayView({ day, heading }: { day: PlanDay; heading?: string }) {
 			{day.isDayOff && (
 				<p className="day-off">Day off · {formatHours(day.limitMinutes)}</p>
 			)}
-			{day.sessions.length || day.todos?.length ? (
+			{empty ? (
+				<p className="day-empty">Nothing planned</p>
+			) : (
 				<ul className="plan-sessions">
 					{day.sessions.map((session) => (
 						<SessionRow key={session.id} session={session} />
@@ -46,8 +51,6 @@ export function DayView({ day, heading }: { day: PlanDay; heading?: string }) {
 						<TodoRow key={todo.id} todo={todo} />
 					))}
 				</ul>
-			) : (
-				<p className="day-empty">Nothing planned</p>
 			)}
 		</section>
 	);

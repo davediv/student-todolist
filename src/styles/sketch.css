@@ -1,0 +1,178 @@
+/*
+ * The drawn frame. `.sketch` gives an element four pencil strokes that
+ * overshoot its corners (::before) and hatched shading on its lower-right
+ * edge (::after) in place of a shadow. Variants only swap custom properties.
+ */
+@property --sketch-draw {
+	syntax: "<number>";
+	inherits: false;
+	initial-value: 4;
+}
+
+.sketch {
+	--sketch-stroke: var(--color-stroke);
+	--sketch-width: var(--stroke-width);
+	--sketch-overshoot: var(--stroke-overshoot);
+	--sketch-hatch: var(--hatch);
+	--sketch-hatch-offset: var(--hatch-offset);
+	--sketch-filter: url(#sketch-wobble);
+	/* Pressure: each stroke tapers in, eases off past the middle, then presses again. */
+	--sketch-line-x: linear-gradient(
+		90deg,
+		transparent,
+		var(--sketch-stroke) 0.3rem,
+		var(--sketch-stroke) 56%,
+		color-mix(in srgb, var(--sketch-stroke) 70%, transparent) 80%,
+		var(--sketch-stroke) calc(100% - 0.5rem),
+		transparent
+	);
+	--sketch-line-y: linear-gradient(
+		180deg,
+		transparent,
+		var(--sketch-stroke) 0.25rem,
+		color-mix(in srgb, var(--sketch-stroke) 75%, transparent) 32%,
+		var(--sketch-stroke) 60%,
+		var(--sketch-stroke) calc(100% - 0.3rem),
+		transparent
+	);
+	position: relative;
+	background-color: var(--color-surface-raised);
+	border-radius: var(--radius-md);
+}
+
+.sketch::before,
+.sketch::after {
+	content: "";
+	position: absolute;
+	pointer-events: none;
+}
+
+/* Drawn clockwise as one stroke: top, right, bottom, left. */
+.sketch::before {
+	inset: calc(var(--sketch-overshoot) * -1);
+	background:
+		var(--sketch-line-x) 0 var(--sketch-overshoot) /
+		calc(clamp(0, var(--sketch-draw, 4), 1) * 100%) var(--sketch-width)
+		no-repeat,
+		var(--sketch-line-y) calc(100% - var(--sketch-overshoot)) 0 /
+		var(--sketch-width) calc(clamp(0, var(--sketch-draw, 4) - 1, 1) * 100%)
+		no-repeat,
+		var(--sketch-line-x) 100% calc(100% - var(--sketch-overshoot)) /
+		calc(clamp(0, var(--sketch-draw, 4) - 2, 1) * 100%) var(--sketch-width)
+		no-repeat,
+		var(--sketch-line-y) var(--sketch-overshoot) 100% / var(--sketch-width)
+		calc(clamp(0, var(--sketch-draw, 4) - 3, 1) * 100%) no-repeat;
+	filter: var(--sketch-filter);
+}
+
+/* The hatch peeks out as an L along the bottom and right edges only. */
+.sketch::after {
+	inset: var(--sketch-hatch-offset) calc(var(--sketch-hatch-offset) * -1)
+		calc(var(--sketch-hatch-offset) * -1) var(--sketch-hatch-offset);
+	background: var(--sketch-hatch);
+	clip-path: polygon(
+		calc(100% - var(--sketch-hatch-offset)) 0,
+		100% 0,
+		100% 100%,
+		0 100%,
+		0 calc(100% - var(--sketch-hatch-offset)),
+		calc(100% - var(--sketch-hatch-offset))
+			calc(100% - var(--sketch-hatch-offset))
+	);
+}
+
+/* Hidden-line convention: dashed means not committed, empty, or unavailable. */
+.sketch-dashed,
+.sketch:disabled,
+.sketch[aria-disabled="true"] {
+	--sketch-line-x: repeating-linear-gradient(
+		90deg,
+		var(--sketch-stroke) 0 var(--dash),
+		transparent var(--dash) var(--dash-period)
+	);
+	--sketch-line-y: repeating-linear-gradient(
+		180deg,
+		var(--sketch-stroke) 0 var(--dash),
+		transparent var(--dash) var(--dash-period)
+	);
+}
+
+.sketch-dashed {
+	background-color: var(--color-surface-tracing);
+}
+
+.sketch-dashed::after {
+	content: none;
+}
+
+/* Red pen: a correction that needs attention. */
+.sketch-danger {
+	--sketch-stroke: var(--color-danger);
+	--sketch-hatch: var(--hatch-danger);
+}
+
+/* Tracing paper: secondary content laid over the sheet. */
+.sketch-tracing {
+	--sketch-stroke: var(--color-stroke-soft);
+	background-color: var(--color-surface-tracing);
+}
+
+.sketch-tracing::after {
+	content: none;
+}
+
+/* Signature motion: the frame draws itself, then the hatching is laid in. */
+.sketch-draw::before {
+	animation: sketch-draw var(--duration-draw) var(--ease-out) both;
+}
+
+.sketch-draw::after {
+	animation: sketch-shade var(--duration-normal) var(--ease-out)
+		var(--duration-draw) both;
+}
+
+@keyframes sketch-draw {
+	from {
+		--sketch-draw: 0;
+	}
+	to {
+		--sketch-draw: 4;
+	}
+}
+
+@keyframes sketch-shade {
+	from {
+		opacity: 0;
+	}
+}
+
+.sketch-defs {
+	position: absolute;
+	width: 0;
+	height: 0;
+	overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.sketch-draw::before,
+	.sketch-draw::after {
+		animation: none;
+	}
+}
+
+@media (forced-colors: active) {
+	/* Doubled class so it beats component rules that reset the border. */
+	.sketch.sketch {
+		border: 1px solid CanvasText;
+	}
+
+	.sketch-dashed.sketch-dashed,
+	.sketch.sketch:disabled {
+		border-style: dashed;
+	}
+
+	.sketch::before,
+	.sketch::after {
+		content: none;
+	}
+}

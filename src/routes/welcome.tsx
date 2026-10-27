@@ -37,21 +37,23 @@ function Welcome() {
 		<main className="welcome-page">
 			<OfflineBanner />
 			<p className="eyebrow">A rhythm that works for you</p>
-			<h1>Welcome to Student Todo</h1>
+			<h1 className="page-title is-drawn">Welcome to Student Todo</h1>
 			<p className="page-description">
 				How much time can you make for studying each day? You can change this in
 				Settings.
 			</p>
-			<LimitsEditor
-				initial={defaultLimits}
-				welcome
-				onSave={async (values) => {
-					const saved = await saveLimits(values);
-					queryClient.setQueryData(limitsQueryOptions.queryKey, saved);
-					await router.invalidate();
-					await navigate({ to: "/" });
-				}}
-			/>
+			<div className="welcome-sheet sketch sketch-draw">
+				<LimitsEditor
+					initial={defaultLimits}
+					welcome
+					onSave={async (values) => {
+						const saved = await saveLimits(values);
+						queryClient.setQueryData(limitsQueryOptions.queryKey, saved);
+						await router.invalidate();
+						await navigate({ to: "/" });
+					}}
+				/>
+			</div>
 		</main>
 	);
 }

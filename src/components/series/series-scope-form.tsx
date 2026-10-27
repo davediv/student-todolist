@@ -42,7 +42,7 @@ export function SeriesScopeForm(props: Props) {
 	}, [query.isSuccess, query.isFetching]);
 	if (query.isError && !initialized)
 		return (
-			<section className="deadline-form">
+			<section className="deadline-form sketch sketch-danger">
 				<p role="alert">Couldn't load recurring deadline — try again</p>
 				<div className="form-actions">
 					<Button onClick={() => void query.refetch()}>Retry</Button>
@@ -54,7 +54,7 @@ export function SeriesScopeForm(props: Props) {
 		);
 	if (!initialized || !query.data)
 		return (
-			<section className="deadline-form">
+			<section className="deadline-form sketch sketch-dashed">
 				<SkeletonRows />
 				<Button variant="outline" onClick={props.onCancel}>
 					Cancel
@@ -171,14 +171,14 @@ function ScopeFields({
 	}
 	if (refreshing)
 		return (
-			<section className="deadline-form">
+			<section className="deadline-form sketch sketch-dashed">
 				<output>{notice}</output>
 				<SkeletonRows />
 			</section>
 		);
 	if (preview)
 		return (
-			<section className="deadline-form series-preview">
+			<section className="deadline-form series-preview is-draft sketch sketch-dashed sketch-draw">
 				<h3>This and following preview</h3>
 				{notice && <output>{notice}</output>}
 				{preview.occurrences.map((item) => (
@@ -210,7 +210,7 @@ function ScopeFields({
 						)}
 						{item.keptSessions.length > 0 && (
 							<>
-								<h5>Kept sessions</h5>
+								<h5 className="preview-label">Kept sessions</h5>
 								<ul className="session-list">
 									{item.keptSessions.map((session) => (
 										<li key={session.id}>
@@ -221,7 +221,7 @@ function ScopeFields({
 								</ul>
 							</>
 						)}
-						<h5>New sessions</h5>
+						<h5 className="preview-label">New sessions</h5>
 						{item.sessions.length ? (
 							<ul className="session-list">
 								{item.sessions.map((session) => (
@@ -278,7 +278,7 @@ function ScopeFields({
 		);
 	return (
 		<form
-			className="deadline-form"
+			className="deadline-form sketch"
 			noValidate
 			onSubmit={(event) => {
 				event.preventDefault();

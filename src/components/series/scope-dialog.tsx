@@ -31,7 +31,7 @@ export function ScopeDialog({
 			<Dialog.Portal>
 				<Dialog.Overlay className="dialog-overlay" />
 				<Dialog.Content
-					className="dialog-content"
+					className="dialog-content sketch sketch-draw"
 					onCloseAutoFocus={(event) => {
 						event.preventDefault();
 						if (!selected.current) returnFocus()?.focus();

@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { Fragment } from "react";
 import { DayView } from "#/components/plan/day-view";
 import { EmptyState } from "#/components/shared/empty-state";
 import { SavedPlanNotice } from "#/components/shared/saved-plan-notice";
@@ -10,6 +11,7 @@ import { daysQueryOptions, savedDays } from "#/lib/days-query";
 import { formatDate, localDate } from "#/lib/format";
 import { useOnline } from "#/lib/offline";
 import { addDays } from "#/lib/planner";
+import { weekStart } from "#/lib/week";
 
 export const Route = createFileRoute("/_app/upcoming")({ component: Upcoming });
 
@@ -30,7 +32,7 @@ function Upcoming() {
 	return (
 		<>
 			<p className="eyebrow">One day at a time</p>
-			<h2>Upcoming</h2>
+			<h2 className="page-title">Upcoming</h2>
 			<p className="page-description">
 				A little breathing room for the next two weeks.
 			</p>
@@ -44,7 +46,7 @@ function Upcoming() {
 			) : pending ? (
 				<SkeletonRows />
 			) : query.isError && !data ? (
-				<div className="plan-error" role="alert">
+				<div className="plan-error sketch sketch-danger" role="alert">
 					<p>Couldn't load your plan — retry</p>
 					<Button variant="outline" onClick={() => void query.refetch()}>
 						Retry
@@ -61,12 +63,28 @@ function Upcoming() {
 						/>
 					)}
 					<div className="upcoming-days">
-						{days.map((day) => (
-							<DayView
-								key={day.date}
-								day={day}
-								heading={`${formatDate(day.date, { weekday: "short" }, "en-GB")} ${formatDate(day.date, { day: "numeric", month: "short" }, "en-GB")}`}
-							/>
+						{days.map((day, index) => (
+							<Fragment key={day.date}>
+								{index > 0 && weekStart(day.date) === day.date && (
+									<p className="week-rule">
+										{formatDate(
+											day.date,
+											{ day: "numeric", month: "short" },
+											"en-GB",
+										)}{" "}
+										–{" "}
+										{formatDate(
+											addDays(day.date, 6),
+											{ day: "numeric", month: "short" },
+											"en-GB",
+										)}
+									</p>
+								)}
+								<DayView
+									day={day}
+									heading={`${formatDate(day.date, { weekday: "short" }, "en-GB")} ${formatDate(day.date, { day: "numeric", month: "short" }, "en-GB")}`}
+								/>
+							</Fragment>
 						))}
 					</div>
 				</>

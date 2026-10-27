@@ -1,0 +1,521 @@
+/* Buttons: drawn rectangles. Primary gets a highlighter swipe behind its label. */
+.btn {
+	--sketch-overshoot: var(--stroke-overshoot-sm);
+	--sketch-hatch-offset: var(--hatch-offset-sm);
+	--sketch-filter: none;
+	display: inline-flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-2);
+	min-height: var(--target-size);
+	padding: 0 var(--space-4);
+	font: var(--type-button);
+	color: var(--color-content);
+	white-space: nowrap;
+	background-color: transparent;
+	border: 0;
+	border-radius: var(--radius-sm);
+	user-select: none;
+	transition:
+		translate var(--duration-fast) var(--ease-out),
+		color var(--duration-fast) var(--ease-out);
+}
+
+.btn svg {
+	flex: none;
+	width: 1.125rem;
+	height: 1.125rem;
+	stroke-width: 2;
+	pointer-events: none;
+}
+
+.btn.sketch {
+	background-color: var(--color-surface-raised);
+}
+
+/* A leading icon reads heavier than text, so its side takes 2px less. */
+.btn:has(> svg:first-child) {
+	padding-inline-start: calc(var(--space-4) - 2px);
+}
+
+.btn[data-size="icon"] svg,
+.toast button svg {
+	width: 1.25rem;
+	height: 1.25rem;
+	stroke-width: 1.75;
+}
+
+.btn-primary {
+	background:
+		var(--highlight-swipe) center / calc(100% - var(--space-3)) 62% no-repeat,
+		var(--color-surface-raised);
+}
+
+.btn-danger {
+	color: var(--color-danger);
+}
+
+.btn-ghost {
+	color: var(--color-content);
+}
+
+.btn-link {
+	min-height: var(--target-size-min);
+	padding: 0;
+	text-decoration: underline;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.25em;
+}
+
+.btn[data-size="lg"] {
+	min-height: 3.25rem;
+	padding: 0 var(--space-8);
+	font: var(--type-button-lg);
+}
+
+.btn[data-size="icon"] {
+	width: var(--target-size-icon);
+	min-height: var(--target-size-icon);
+	padding: 0;
+	color: var(--color-content-muted);
+}
+
+.btn:focus-visible {
+	outline-offset: 5px;
+}
+
+/* Press: the pencil bears down and the button settles into its hatching. */
+.btn:active:not(:disabled, [aria-disabled="true"]) {
+	--sketch-width: var(--stroke-width-heavy);
+	--sketch-stroke: var(--color-stroke-strong);
+	--sketch-hatch-offset: var(--hatch-offset-xs);
+	translate: 1px 1px;
+}
+
+.btn.sketch-danger:active:not(:disabled, [aria-disabled="true"]) {
+	--sketch-stroke: var(--color-danger);
+}
+
+/* Unframed buttons press by inking their underline. */
+.btn:active:not(:disabled, [aria-disabled="true"]):is(.btn-ghost, .btn-link) {
+	translate: none;
+	color: var(--color-stroke-strong);
+	text-decoration: underline;
+	text-decoration-thickness: 2px;
+	text-underline-offset: 0.3em;
+}
+
+.btn[data-size="icon"]:active:not(:disabled, [aria-disabled="true"]) {
+	color: var(--color-content);
+	text-decoration: none;
+}
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+	color: var(--color-content-muted);
+	opacity: 0.7;
+}
+
+.btn-primary:disabled {
+	background: var(--color-surface-raised);
+}
+
+@media (hover: hover) and (pointer: fine) {
+	.btn.sketch:hover:not(:disabled, [aria-disabled="true"]) {
+		--sketch-width: var(--stroke-width-heavy);
+		--sketch-stroke: var(--color-stroke-strong);
+	}
+
+	.btn.sketch-danger:hover:not(:disabled, [aria-disabled="true"]) {
+		--sketch-stroke: var(--color-danger);
+	}
+
+	.btn-ghost:hover:not(:disabled, [aria-disabled="true"], [data-size="icon"]) {
+		text-decoration: underline;
+		text-decoration-thickness: 1.5px;
+		text-underline-offset: 0.3em;
+	}
+
+	.btn[data-size="icon"]:hover:not(:disabled, [aria-disabled="true"]) {
+		color: var(--color-content);
+	}
+}
+
+/* Inputs: a drawn box, mono values, focus thickens the stroke and highlights. */
+.input,
+.textarea,
+.native-select {
+	width: 100%;
+	min-width: 0;
+	min-height: var(--target-size);
+	padding: var(--space-2) var(--space-3);
+	font: var(--type-body);
+	color: var(--color-content);
+	background-color: var(--color-surface-raised);
+	border: var(--stroke-width) solid var(--color-stroke);
+	border-radius: var(--radius-drawn);
+	transition: box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.input[type="date"],
+.input[type="number"] {
+	font-family: var(--font-mono);
+	font-variant-numeric: tabular-nums;
+}
+
+.textarea {
+	min-height: 6rem;
+	field-sizing: content;
+	resize: vertical;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+	font: var(--type-label);
+	color: var(--color-content-muted);
+}
+
+.input:focus-visible,
+.textarea:focus-visible,
+.native-select:focus-visible {
+	outline-offset: 2px;
+	box-shadow:
+		inset 0 0 0 0.6px var(--color-stroke-strong),
+		inset 0 -0.3125rem 0 var(--color-highlight-band);
+}
+
+.input[aria-invalid="true"],
+.textarea[aria-invalid="true"],
+.native-select[aria-invalid="true"] {
+	border-color: var(--color-danger);
+}
+
+.input:disabled,
+.textarea:disabled,
+.native-select:disabled {
+	border-style: dashed;
+	color: var(--color-content-muted);
+	cursor: not-allowed;
+}
+
+.native-select {
+	padding-right: var(--space-10);
+	appearance: none;
+	background-image: var(--chevron-image);
+	background-repeat: no-repeat;
+	background-position: right var(--space-3) center;
+	background-size: 1.25rem;
+}
+
+/* Checkbox: a drawn square with a scrawled tick. */
+input[type="checkbox"] {
+	flex: none;
+	width: 1.5rem;
+	height: 1.5rem;
+	margin: 0;
+	appearance: none;
+	background: var(--color-surface-raised) no-repeat center / 112%;
+	border: var(--stroke-width) solid var(--color-stroke);
+	border-radius: 3px 4px 2px 5px / 4px 2px 5px 3px;
+	cursor: pointer;
+}
+
+input[type="checkbox"]:checked {
+	background-image: var(--tick-image);
+}
+
+input[type="checkbox"]:disabled {
+	border-style: dashed;
+	cursor: not-allowed;
+}
+
+input[type="checkbox"][aria-disabled="true"] {
+	cursor: progress;
+}
+
+input[type="checkbox"]:active:not(:disabled, [aria-disabled="true"]) {
+	border-color: var(--color-stroke-strong);
+	box-shadow: inset 0 0 0 0.5px var(--color-stroke-strong);
+}
+
+@media (hover: hover) and (pointer: fine) {
+	input[type="checkbox"]:hover:not(:disabled, [aria-disabled="true"]) {
+		border-color: var(--color-stroke-strong);
+		box-shadow: inset 0 0 0 0.5px var(--color-stroke-strong);
+	}
+}
+
+@media (forced-colors: active) {
+	input[type="checkbox"] {
+		appearance: auto;
+	}
+}
+
+/* Hour ruler: a baseline, a tick per hour, and the done part shaded in. */
+.meter {
+	position: relative;
+	display: block;
+	width: 100%;
+	min-width: 6.5rem;
+	height: 0.625rem;
+	--tick: var(--color-stroke-soft);
+	background:
+		linear-gradient(var(--tick), var(--tick)) 0 100% / 100% 1px no-repeat,
+		linear-gradient(var(--tick), var(--tick)) 100% 0 / 1px 100% no-repeat,
+		repeating-linear-gradient(
+			90deg,
+			var(--tick) 0 1px,
+			transparent 1px calc(100% / var(--meter-units, 1))
+		)
+		0 100% / 100% 55% no-repeat;
+}
+
+.meter-fill {
+	position: absolute;
+	inset: 0 auto 0 0;
+	width: calc(var(--meter-value, 0) * 100%);
+	background: var(--hatch-dense);
+	box-shadow: inset -2px 0 0 var(--color-stroke-strong);
+}
+
+/* The weekly ruler is Upcoming's one highlighted thing. */
+.meter-week {
+	height: 0.875rem;
+}
+
+.meter-week .meter-fill {
+	bottom: 1px;
+	background: var(--color-highlight-band);
+}
+
+/* Labels are lettered by hand; the control holds the clean value. */
+.field-label,
+.form-field > label {
+	display: block;
+	font: var(--type-note-strong);
+	color: var(--color-content);
+}
+
+.form-field {
+	display: grid;
+	gap: var(--space-1);
+	align-content: start;
+}
+
+.form-actions,
+.dialog-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--space-3);
+	margin-top: var(--space-6);
+}
+
+.dialog-actions {
+	justify-content: flex-end;
+}
+
+/* Menus: a small drawn card that appears in place. */
+.menu-content {
+	--sketch-hatch-offset: var(--hatch-offset-sm);
+	--sketch-filter: none;
+	z-index: var(--z-popover);
+	min-width: 12rem;
+	padding: var(--space-2);
+	transform-origin: var(--radix-dropdown-menu-content-transform-origin);
+	transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+@starting-style {
+	.menu-content {
+		opacity: 0;
+	}
+}
+
+.menu-item {
+	display: flex;
+	align-items: center;
+	min-height: var(--target-size);
+	padding: 0 var(--space-3);
+	font: var(--type-body);
+	border-radius: var(--radius-sm);
+	outline: none;
+	cursor: pointer;
+}
+
+.menu-item[data-highlighted] {
+	background: var(--highlight-swipe) center / 100% 70% no-repeat;
+	box-shadow: inset 2px 0 0 var(--color-stroke-strong);
+	/* Invisible normally; forced-colors mode paints it, so focus never disappears. */
+	outline: 2px solid transparent;
+	outline-offset: -2px;
+}
+
+.menu-item:active:not([data-disabled]) {
+	background: var(--highlight-swipe) center / 100% 70% no-repeat;
+}
+
+.menu-item[data-disabled] {
+	color: var(--color-content-muted);
+	text-decoration: line-through;
+	text-decoration-color: var(--color-content-subtle);
+	cursor: not-allowed;
+}
+
+/* Dialogs: a sheet laid on tracing paper over the plan. */
+.dialog-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: var(--z-overlay);
+	background: var(--color-scrim);
+}
+
+.dialog-content {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	z-index: var(--z-modal);
+	width: min(30rem, calc(100vw - 2.5rem));
+	padding: var(--space-8) var(--space-6) var(--space-6);
+	translate: -50% -50%;
+}
+
+.dialog-content > h2 {
+	margin-bottom: var(--space-2);
+	font: var(--type-heading);
+}
+
+.dialog-content > p {
+	margin: 0 0 var(--space-5);
+	font: var(--type-prose);
+	color: var(--color-content-muted);
+}
+
+.dialog-content [role="alert"]:not(.field-error) {
+	color: var(--color-danger);
+}
+
+/* Short viewports: the dialog scrolls, so the drawn frame becomes a plain stroke. */
+@media (max-height: 36rem) {
+	.dialog-content {
+		max-height: calc(100dvh - 2rem);
+		overflow-y: auto;
+		border: var(--stroke-width) solid var(--color-stroke);
+	}
+
+	.dialog-content::before,
+	.dialog-content::after {
+		content: none;
+	}
+}
+
+.dialog-overlay[data-state="open"],
+.dialog-content[data-state="open"] {
+	animation: fade-in var(--duration-enter) var(--ease-out);
+}
+
+/* Only the scrim fades out: closing content can't flash its next state. */
+.dialog-overlay[data-state="closed"] {
+	animation: fade-out var(--duration-fast) var(--ease-out) forwards;
+}
+
+@keyframes fade-in {
+	from {
+		opacity: 0;
+	}
+}
+
+@keyframes fade-out {
+	to {
+		opacity: 0;
+	}
+}
+
+/* Toast: a pencilled note slid in at the corner. */
+.toast-viewport {
+	position: fixed;
+	right: var(--space-4);
+	bottom: calc(var(--bottom-nav-height) + var(--space-4));
+	z-index: var(--z-toast);
+	display: grid;
+	gap: var(--space-3);
+	width: min(22rem, calc(100vw - 2rem));
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	outline: none;
+}
+
+.toast {
+	--sketch-filter: none;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-4);
+	padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
+	font: var(--type-note-strong);
+}
+
+/* Entry is a transition, so a repeat toast picks up from where it is. */
+.toast {
+	transition:
+		opacity var(--duration-enter) var(--ease-out),
+		translate var(--duration-enter) var(--ease-out);
+}
+
+@starting-style {
+	.toast {
+		opacity: 0;
+		translate: 0 12px;
+	}
+}
+
+.toast[data-state="closed"] {
+	animation: fade-out var(--duration-fast) var(--ease-out) forwards;
+}
+
+/* The drag tracks the finger 1:1; no transition while it moves. */
+.toast[data-swipe="move"] {
+	translate: var(--radix-toast-swipe-move-x) 0;
+	transition: none;
+}
+
+.toast[data-swipe="cancel"] {
+	translate: 0 0;
+	transition: translate var(--duration-enter) var(--ease-out);
+}
+
+/* Leave from where the finger let go, carrying on in the swipe direction. */
+.toast[data-swipe="end"] {
+	translate: var(--radix-toast-swipe-end-x) 0;
+	animation: toast-out var(--duration-enter) var(--ease-out) forwards;
+}
+
+.toast button:active {
+	color: var(--color-content);
+}
+
+.toast button {
+	display: grid;
+	place-items: center;
+	width: var(--target-size-sm);
+	height: var(--target-size-sm);
+	color: var(--color-content-muted);
+	background: none;
+	border: 0;
+}
+
+@keyframes toast-out {
+	to {
+		opacity: 0;
+		translate: calc(100% + var(--space-6)) 0;
+	}
+}
+
+@media (min-width: 48rem) {
+	.toast-viewport {
+		bottom: var(--space-6);
+		right: var(--space-6);
+	}
+}

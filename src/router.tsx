@@ -1,5 +1,6 @@
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
+import { NotFound, RouteError } from "#/components/shared/route-states";
 import { SkeletonRows } from "#/components/shared/skeleton";
 import { getContext } from "./integrations/tanstack-query/root-provider";
 import { listenForPlanRefresh } from "./lib/plan-refresh";
@@ -13,6 +14,9 @@ export function getRouter() {
 		context,
 		scrollRestoration: true,
 		defaultPendingComponent: SkeletonRows,
+		defaultNotFoundComponent: NotFound,
+		notFoundMode: "root",
+		defaultErrorComponent: RouteError,
 		defaultPreload: "intent",
 		defaultPreloadStaleTime: 0,
 	});

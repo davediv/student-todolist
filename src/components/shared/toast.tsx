@@ -1,3 +1,4 @@
+import { X } from "lucide-react";
 import { Toast } from "radix-ui";
 import { createContext, type ReactNode, useContext, useState } from "react";
 
@@ -17,9 +18,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 		>
 			<Toast.Provider swipeDirection="right">
 				{children}
-				<Toast.Root className="toast" open={open} onOpenChange={setOpen}>
+				<Toast.Root className="toast sketch" open={open} onOpenChange={setOpen}>
 					<Toast.Title>{message}</Toast.Title>
-					<Toast.Close aria-label="Dismiss notification">×</Toast.Close>
+					<Toast.Close aria-label="Dismiss notification">
+						<X aria-hidden="true" />
+					</Toast.Close>
 				</Toast.Root>
 				<Toast.Viewport className="toast-viewport" />
 			</Toast.Provider>

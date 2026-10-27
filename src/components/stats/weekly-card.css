@@ -1,65 +1,89 @@
+/* Weekly hours: a drawn card holding an hour scale, shaded with highlighter. */
 .weekly-card {
 	display: block;
 	width: 100%;
-	margin: 0 0 24px;
-	padding: 20px 24px;
-	background: var(--card);
-	border: 1px solid var(--border);
-	border-radius: 16px;
-}
-.weekly-card-trigger {
+	margin: 0 0 var(--space-8);
+	padding: var(--space-4) var(--space-5) var(--space-5);
+	font: var(--type-body);
+	color: var(--color-content);
 	text-align: left;
+	border: 0;
+}
+
+.weekly-card > p {
+	margin: 0 0 var(--space-3);
+	color: var(--color-content-muted);
+}
+
+.weekly-card[role="alert"] > p {
+	font: var(--type-body-strong);
+	color: var(--color-danger);
+}
+
+.weekly-card-trigger {
 	cursor: pointer;
-	color: var(--foreground);
 }
-.weekly-card-trigger:hover {
-	border-color: var(--primary);
-}
+
 .weekly-card-trigger:focus-visible {
-	outline: 3px solid var(--ring);
-	outline-offset: 3px;
+	outline-offset: 6px;
 }
+
+.weekly-card-trigger:active {
+	--sketch-width: var(--stroke-width-heavy);
+	--sketch-stroke: var(--color-stroke-strong);
+}
+
+@media (hover: hover) and (pointer: fine) {
+	.weekly-card-trigger:hover {
+		--sketch-width: var(--stroke-width-heavy);
+		--sketch-stroke: var(--color-stroke-strong);
+	}
+}
+
 .weekly-card-heading {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	flex-wrap: wrap;
-	gap: 8px;
-	margin-bottom: 12px;
+	gap: var(--space-2);
+	margin-bottom: var(--space-3);
+	font: var(--type-subheading);
 }
+
 .weekly-card-heading strong {
-	margin-left: 8px;
+	margin-left: var(--space-2);
+	font: var(--type-figure);
+	font-variant-numeric: tabular-nums;
 }
-.weekly-progress-track {
-	display: block;
-	height: 8px;
-	width: 100%;
-	overflow: hidden;
-	border-radius: 4px;
-	background: var(--muted);
+
+.weekly-card-heading svg {
+	width: 1.25rem;
+	height: 1.25rem;
+	/* The chevron's ink ends inside its box; pull it out to the text inset. */
+	margin-inline-end: -0.375rem;
+	stroke-width: 2;
+	color: var(--color-content-muted);
 }
-.weekly-progress-fill {
-	display: block;
-	height: 100%;
-	background: var(--primary);
+
+/* Doubled with .dialog-content so it wins whatever order the CSS chunks load in. */
+.dialog-content.weekly-history > p {
+	margin-bottom: 0;
 }
-.weekly-history {
-	max-height: calc(100dvh - 40px);
-	overflow-y: auto;
-}
+
 .weekly-history-list {
 	display: grid;
-	gap: 24px;
+	gap: var(--space-5);
+	margin: var(--space-6) 0 0;
 	padding: 0;
-	margin: 24px 0;
 	list-style: none;
 }
-.weekly-history-list h3 {
-	margin: 0;
-	font-size: 0.875rem;
-	font-weight: 500;
+
+.weekly-history-list .weekly-card-heading {
+	margin-bottom: var(--space-2);
+	font: var(--type-body-sm);
 }
+
 .weekly-history-list .weekly-card-heading > span {
-	color: var(--muted-foreground);
-	font-size: 0.875rem;
+	font: var(--type-figure);
+	font-variant-numeric: tabular-nums;
 }

@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { DeadlineActions } from "#/components/deadlines/deadline-actions";
 import { DeadlineForm } from "#/components/deadlines/deadline-form";
+import { DeadlineMeter } from "#/components/deadlines/deadline-meter";
 import { TypeIcon } from "#/components/deadlines/type-icon";
 import { SessionMenu } from "#/components/plan/session-menu";
 import {
@@ -54,24 +55,46 @@ function DeadlineDetail() {
 			<Link to="/deadlines" className="back-link">
 				← Deadlines
 			</Link>
-			<TypeIcon type={deadline.type} />
-			<h2>{deadline.title}</h2>
-			<p className="page-description">
-				Due {formatDate(deadline.dueDate)} · {deadline.tickedMinutes / 60} /{" "}
-				{formatHours(deadline.estimateMinutes)}
-			</p>
-			{deadline.status === "active" && deadline.unplannedMinutes > 0 && (
-				<p className="shortfall">
-					{formatHours(deadline.unplannedMinutes)} unplanned
-				</p>
+			<header className="detail-header">
+				<TypeIcon type={deadline.type} />
+				<h2 className="page-title">{deadline.title}</h2>
+				<div className="detail-spec">
+					<p>
+						<span>Starts</span>
+						{formatDate(deadline.startDate)}
+					</p>
+					<p>
+						<span>Plan</span>
+						Due {formatDate(deadline.dueDate)} · {deadline.tickedMinutes / 60} /{" "}
+						{formatHours(deadline.estimateMinutes)}
+					</p>
+				</div>
+				<DeadlineMeter
+					tickedMinutes={deadline.tickedMinutes}
+					estimateMinutes={deadline.estimateMinutes}
+				/>
+				{deadline.status === "active" && deadline.unplannedMinutes > 0 && (
+					<p className="shortfall">
+						{formatHours(deadline.unplannedMinutes)} unplanned
+					</p>
+				)}
+			</header>
+			{deadline.notes && (
+				<section className="detail-notes">
+					<h3>Notes</h3>
+					<p className="deadline-notes">{deadline.notes}</p>
+				</section>
 			)}
-			{deadline.notes && <p className="deadline-notes">{deadline.notes}</p>}
-			{deadline.status === "active" && !showEdit && (
-				<MutationButton ref={editButton} onClick={() => setEditing(true)}>
-					Edit
-				</MutationButton>
+			{!showEdit && (
+				<div className="detail-actions">
+					{deadline.status === "active" && (
+						<MutationButton ref={editButton} onClick={() => setEditing(true)}>
+							Edit
+						</MutationButton>
+					)}
+					<DeadlineActions deadline={deadline} detail />
+				</div>
 			)}
-			{!showEdit && <DeadlineActions deadline={deadline} detail />}
 			{showEdit && deadline.seriesId && !editScope && (
 				<ScopeDialog
 					open
@@ -114,7 +137,7 @@ function DeadlineDetail() {
 					}}
 				/>
 			)}
-			<section className="settings-section">
+			<section className="sessions-sheet sketch">
 				<h3>Study sessions</h3>
 				{sessions.length ? (
 					<ul className="session-list">

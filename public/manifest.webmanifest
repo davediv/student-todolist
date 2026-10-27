@@ -7,11 +7,11 @@
 	"start_url": "/",
 	"scope": "/",
 	"display": "standalone",
-	"theme_color": "#f7f9f8",
-	"background_color": "#f7f9f8",
+	"theme_color": "#fbfaf7",
+	"background_color": "#fbfaf7",
 	"color_scheme_dark": {
-		"theme_color": "#131b18",
-		"background_color": "#131b18"
+		"theme_color": "#17181a",
+		"background_color": "#17181a"
 	},
 	"icons": [
 		{

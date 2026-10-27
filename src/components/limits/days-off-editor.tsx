@@ -70,7 +70,7 @@ export function DaysOffEditor() {
 		}
 	}
 	return (
-		<section className="settings-section">
+		<section className="settings-section sketch">
 			<h3>Days off</h3>
 			<p className="page-description">
 				Set a different limit for one date. Existing sessions stay where they
@@ -122,7 +122,11 @@ export function DaysOffEditor() {
 						/>
 					)}
 				</FormField>
-				<MutationButton type="submit" disabled={busy !== null}>
+				<MutationButton
+					type="submit"
+					variant="outline"
+					disabled={busy !== null}
+				>
 					{busy === "add" ? "Adding…" : "Add day off"}
 				</MutationButton>
 			</form>

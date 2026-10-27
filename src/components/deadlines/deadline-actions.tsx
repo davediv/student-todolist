@@ -7,6 +7,7 @@ import {
 } from "#/components/series/scope-dialog";
 import { ConfirmDialog } from "#/components/shared/confirm-dialog";
 import { MutationButton } from "#/components/shared/mutation-button";
+import { Button } from "#/components/ui/button";
 import { deleteDeadline, markDeadlineDone } from "#/lib/deadlines-query";
 import { localDate } from "#/lib/format";
 import { useOnline } from "#/lib/offline";
@@ -56,16 +57,19 @@ export function DeadlineActions({
 			{deadline.status === "active" &&
 				deadline.dueDate < localDate() &&
 				(online ? (
-					<Link
-						to="/deadlines/$deadlineId"
-						params={{ deadlineId: deadline.id }}
-						search={{ edit: true, focusDue: true }}
-						className="back-link"
-					>
-						Extend due date
-					</Link>
+					<Button asChild variant="link" className="btn-danger">
+						<Link
+							to="/deadlines/$deadlineId"
+							params={{ deadlineId: deadline.id }}
+							search={{ edit: true, focusDue: true }}
+						>
+							Extend due date
+						</Link>
+					</Button>
 				) : (
-					<MutationButton variant="link">Extend due date</MutationButton>
+					<MutationButton variant="link" className="btn-danger">
+						Extend due date
+					</MutationButton>
 				))}
 			{deadline.seriesId && (
 				<>
