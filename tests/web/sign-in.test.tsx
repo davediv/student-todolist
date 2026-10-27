@@ -2,6 +2,7 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, expect, it, vi } from "vitest";
 import { authClient } from "../../src/lib/auth-client";
+import { guestSignInPath } from "../../src/lib/guest";
 import { renderRoute, student } from "./router";
 
 vi.mock("../../src/lib/auth-client", () => ({
@@ -49,6 +50,12 @@ it("starts Google sign-in and remains busy while navigating", async () => {
 	expect(
 		screen.getByRole("button", { name: "Connecting to Google…" }),
 	).toBeDisabled();
+});
+it("offers the local guest account in development", async () => {
+	await renderRoute("/sign-in", null);
+	expect(
+		await screen.findByRole("link", { name: "Continue as guest" }),
+	).toHaveAttribute("href", guestSignInPath);
 });
 it("shows a retry message for a failed Google request", async () => {
 	vi.mocked(authClient.signIn.social).mockRejectedValue(new Error("network"));

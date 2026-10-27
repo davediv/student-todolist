@@ -47,7 +47,11 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). A signed-out browser reaches the sign-in screen. Local D1 data is stored under `.wrangler/state/` and survives server restarts. No Cloudflare login or remote database is needed for local development.
 
-The example's placeholder Google values are enough to load the sign-in screen and use the local test route. Real Google sign-in needs the OAuth setup below. For a local session without Google, open:
+The example's placeholder Google values are enough to load the sign-in screen and use the local test route. Real Google sign-in needs the OAuth setup below.
+
+To try the app without Google credentials, copy `.dev.vars.example` as is and click **Continue as guest** on the sign-in screen. This signs in as `guest@student-todo.test`, which every non-production environment allowlists automatically, so `ALLOWED_EMAILS` needs no edit. The guest account and its data persist in local D1 across sign-outs; **Settings → Delete account** starts it fresh. The button only appears in the Vite development server (`npm run dev`); in `npm run preview`, open the guest's test sign-in URL directly. Production never allowlists the guest email.
+
+For a local session as a specific allowlisted student, open:
 
 [http://localhost:3000/api/test/sign-in?email=student@example.com](http://localhost:3000/api/test/sign-in?email=student@example.com)
 

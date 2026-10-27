@@ -284,6 +284,10 @@
 	width: 100%;
 }
 
+.cover-sheet .btn + .btn {
+	margin-top: var(--space-3);
+}
+
 .cover-sheet .sign-in-error {
 	padding: var(--space-3);
 	font: var(--type-body-strong);

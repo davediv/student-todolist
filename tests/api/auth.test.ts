@@ -1,8 +1,10 @@
 import { env } from "cloudflare:test";
+import { eq } from "drizzle-orm";
 import { expect, it } from "vitest";
 import { getDb } from "../../src/db";
 import { session, user } from "../../src/db/schema";
 import { getAuth } from "../../src/lib/auth";
+import { guestEmail } from "../../src/lib/guest";
 import { apiApp, createApiApp } from "../../src/server/api";
 
 const email = "student@example.com";
@@ -74,6 +76,19 @@ it("checks existing accounts and case-insensitive lists on every sign-in", async
 	const [student] = await getDb(env).select().from(user);
 	await expect(
 		context.internalAdapter.createSession(student.id),
+	).rejects.toMatchObject({ status: "FORBIDDEN" });
+});
+it("allowlists the local guest account outside production only", async () => {
+	const { result } = await signIn(env, guestEmail);
+	expect(result.status).toBe(302);
+	const guest = await getDb(env).query.user.findFirst({
+		where: eq(user.email, guestEmail),
+	});
+	expect(guest).toBeDefined();
+	const production = await getAuth({ ...env, ENVIRONMENT: "production" })
+		.$context;
+	await expect(
+		production.internalAdapter.createSession(guest?.id ?? ""),
 	).rejects.toMatchObject({ status: "FORBIDDEN" });
 });
 it("does not register either test sign-in path in production", async () => {

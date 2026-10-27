@@ -5,6 +5,7 @@ import { BrandMark } from "#/components/shared/brand-mark";
 import { OfflineBanner } from "#/components/shared/offline-banner";
 import { Button } from "#/components/ui/button";
 import { authClient } from "#/lib/auth-client";
+import { guestSignInPath } from "#/lib/guest";
 import { isOnline, useOnline } from "#/lib/offline";
 import { sessionQueryOptions } from "#/lib/session";
 export const Route = createFileRoute("/sign-in")({
@@ -78,6 +79,12 @@ function SignIn() {
 					>
 						{busy ? "Connecting to Google…" : "Sign in with Google"}
 					</Button>
+					{/* The server only accepts the guest account outside production. */}
+					{import.meta.env.DEV && (
+						<Button asChild variant="outline" size="lg">
+							<a href={guestSignInPath}>Continue as guest</a>
+						</Button>
+					)}
 					<p className="title-stamp">
 						Invite only<span aria-hidden="true"> · Sheet 1 of 1</span>
 					</p>

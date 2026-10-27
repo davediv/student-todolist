@@ -3,11 +3,16 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { eq } from "drizzle-orm";
 import { getDb } from "#/db";
 import * as schema from "#/db/schema";
+import { guestEmail } from "#/lib/guest";
 import { assertAllowlisted } from "#/server/allowlist";
 import { testSignInPlugin } from "#/server/test-sign-in";
 
 export function getAuth(env: Env) {
 	const db = getDb(env);
+	const production = env.ENVIRONMENT === "production";
+	const allowedEmails = production
+		? env.ALLOWED_EMAILS
+		: `${env.ALLOWED_EMAILS},${guestEmail}`;
 	return betterAuth({
 		appName: "Student Todo",
 		baseURL: env.BETTER_AUTH_URL,
@@ -35,7 +40,7 @@ export function getAuth(env: Env) {
 			user: {
 				create: {
 					before: async (user) => {
-						assertAllowlisted(user.email, env.ALLOWED_EMAILS);
+						assertAllowlisted(user.email, allowedEmails);
 					},
 				},
 			},
@@ -45,15 +50,12 @@ export function getAuth(env: Env) {
 						const student = await db.query.user.findFirst({
 							where: eq(schema.user.id, session.userId),
 						});
-						assertAllowlisted(student?.email ?? "", env.ALLOWED_EMAILS);
+						assertAllowlisted(student?.email ?? "", allowedEmails);
 					},
 				},
 			},
 		},
-		plugins:
-			env.ENVIRONMENT === "production"
-				? []
-				: [testSignInPlugin(env.ALLOWED_EMAILS)],
+		plugins: production ? [] : [testSignInPlugin(allowedEmails)],
 	});
 }
 export type AuthUser = ReturnType<typeof getAuth>["$Infer"]["Session"]["user"];
